@@ -13,7 +13,7 @@
         Início
       </NuxtLink>
       <NuxtLink
-        to="/pessoas"
+        to="/people"
         class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
         active-class="text-foreground"
       >
