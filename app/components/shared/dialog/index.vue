@@ -10,6 +10,7 @@ import {
 
 const formComponents = {
   person: defineAsyncComponent(() => import("@/components/form/person.vue")),
+  category: defineAsyncComponent(() => import("@/components/form/category.vue")),
 } as const;
 
 type FormKey = keyof typeof formComponents;

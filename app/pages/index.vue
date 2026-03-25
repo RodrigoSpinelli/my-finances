@@ -8,7 +8,7 @@
     <p class="text-muted-foreground text-sm">
       Use o menu para gerenciar
       <NuxtLink
-        to="/pessoas"
+        to="/people"
         class="text-foreground underline-offset-4 hover:underline"
       >
         pessoas

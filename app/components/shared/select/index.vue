@@ -23,7 +23,7 @@ const model = defineModel<string>();
 
 <template>
   <Select v-model="model">
-    <SelectTrigger :id="id">
+    <SelectTrigger class="w-full" :id="id">
       <SelectValue :placeholder="placeholder" />
     </SelectTrigger>
     <SelectContent>
