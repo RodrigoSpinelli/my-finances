@@ -15,6 +15,7 @@ export default defineNuxtConfig({
     "@nuxt/test-utils",
     "shadcn-nuxt",
     "@nuxtjs/supabase",
+    "@nuxtjs/color-mode",
   ],
   css: ["~/assets/css/tailwind.css"],
   vite: {
