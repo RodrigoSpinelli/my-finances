@@ -1,5 +1,13 @@
 <script setup lang="ts">
 import { DialogFooter } from "@/components/ui/dialog";
+import type { Tables } from "~/types/database.types";
+
+type Person = Tables<"people">;
+
+const props = defineProps<{
+  id?: string;
+}>();
+
 interface Form {
   first_name: string;
   last_name: string;
@@ -8,7 +16,6 @@ interface Form {
 
 const emit = defineEmits<{
   (e: "submit"): void;
-  (e: "close"): void;
 }>();
 
 const form = reactive<Form>({
@@ -57,15 +64,76 @@ const colors = [
 ];
 
 const submit = () => {
-  console.log(form);
-  useToast({
-    type: "success",
-    title: "Sucesso!",
-    description: "Pessoa cadastrada com sucesso",
-  });
-  emit("submit");
-  emit("close");
+  props.id ? update() : create();
 };
+
+const create = async () => {
+  try {
+    await $fetch("/api/people", {
+      method: "POST",
+      body: form,
+    });
+    useToast({
+      type: "success",
+      title: "Sucesso!",
+      description: "Pessoa cadastrada com sucesso",
+    });
+    resetForm();
+    emit("submit");
+  } catch (error) {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description:
+        error instanceof Error ? error.message : "Erro ao cadastrar pessoa",
+    });
+  }
+};
+
+const update = async () => {
+  try {
+    await $fetch(`/api/people/${props.id}`, {
+      method: "PATCH",
+      body: form,
+    });
+    useToast({
+      type: "success",
+      title: "Sucesso!",
+      description: "Pessoa atualizada com sucesso",
+    });
+    resetForm();
+    emit("submit");
+  } catch (error) {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description:
+        error instanceof Error ? error.message : "Erro ao atualizar pessoa",
+    });
+  }
+};
+
+const getData = async () => {
+  try {
+    const { person } = await $fetch<{ person: Person }>(
+      `/api/people/${props.id}`,
+    );
+    form.first_name = person.first_name;
+    form.last_name = person.last_name;
+    form.color = person.color ?? "";
+  } catch (error) {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description:
+        error instanceof Error ? error.message : "Erro ao buscar pessoa",
+    });
+  }
+};
+
+onMounted(() => {
+  props.id && getData();
+});
 
 const resetForm = () => {
   form.first_name = "";
@@ -124,6 +192,5 @@ const resetForm = () => {
       </DialogClose>
       <Button type="submit">Salvar</Button>
     </DialogFooter>
-    <pre>{{ form }}</pre>
   </form>
 </template>
