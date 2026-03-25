@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import type { Tables } from "~/types/database.types";
-import {
-  isPersonColorName,
-  PERSON_COLOR_OPTIONS,
-  personSwatchBgClass,
-} from "#shared/person-colors";
 
 type Person = Tables<"people">;
 
@@ -13,6 +8,13 @@ const { data, refresh, error, status } = await useFetch<{ people: Person[] }>(
 );
 
 const search = ref("");
+const isOpen = ref(false);
+const dialogId = ref<string | undefined>(undefined);
+
+const openDialog = (id?: string) => {
+  dialogId.value = id;
+  isOpen.value = true;
+};
 </script>
 
 <template>
@@ -31,11 +33,7 @@ const search = ref("");
         class="w-full max-w-xs"
         type="search"
       />
-      <shared-dialog title="Nova pessoa" form="person">
-        <template #trigger>
-          <Button>Nova pessoa</Button>
-        </template>
-      </shared-dialog>
+      <Button @click="openDialog">Nova pessoa</Button>
     </div>
 
     <section class="space-y-4">
@@ -72,11 +70,6 @@ const search = ref("");
               <td class="px-4 py-3">
                 <span v-if="p.color" class="inline-flex items-center gap-2">
                   <span
-                    class="inline-block size-4 shrink-0 rounded-full border border-border/70"
-                    :class="personSwatchBgClass(p.color)"
-                    :title="p.color"
-                  />
-                  <span
                     class="text-muted-foreground max-w-48 font-mono text-xs"
                     >{{ p.color }}</span
                   >
@@ -85,7 +78,7 @@ const search = ref("");
               </td>
               <td class="px-4 py-3 text-right">
                 <div class="flex justify-end gap-2">
-                  <Button type="button" variant="outline" size="sm">
+                  <Button type="button" variant="outline" size="sm" @click="openDialog(p.id)">
                     Editar
                   </Button>
                   <Button type="button" variant="destructive" size="sm">
@@ -98,5 +91,12 @@ const search = ref("");
         </table>
       </div>
     </section>
+    <shared-dialog
+      v-model="isOpen"
+      title="Nova pessoa"
+      form="person"
+      :id="dialogId"
+      @submit="refresh"
+    />
   </div>
 </template>
