@@ -85,7 +85,7 @@ const openDialog = (id?: string) => {
     <section class="space-y-4">
       <h2 class="text-lg font-medium">Lista</h2>
 
-      <shared-table :headers="headers" :is-loading="pending">
+      <shared-table :headers="headers" :is-loading="pending" :length="filteredPeople.length">
         <TableRow v-for="p in filteredPeople" :key="p.id">
           <TableCell>{{ p.first_name }} {{ p.last_name }}</TableCell>
           <TableCell>
