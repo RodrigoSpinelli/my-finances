@@ -22,9 +22,15 @@ defineProps<{
   title: string;
   description?: string;
   form: FormKey;
+  id?: string;
 }>();
 
-const isOpen = ref(false);
+const handleSubmit = () => {
+  emit("submit");
+  isOpen.value = false;
+};
+
+const isOpen = defineModel<boolean>();
 </script>
 
 <template>
@@ -40,7 +46,7 @@ const isOpen = ref(false);
         }}</DialogDescription>
       </DialogHeader>
       <div class="space-y-4">
-        <component :is="formComponents[form]" @submit="emit('submit')" @close="isOpen = false" />
+        <component :is="formComponents[form]" :id="id" @submit="handleSubmit" />
       </div>
     </DialogContent>
   </Dialog>
