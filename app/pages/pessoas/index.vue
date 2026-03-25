@@ -33,7 +33,7 @@ const openDialog = (id?: string) => {
         class="w-full max-w-xs"
         type="search"
       />
-      <Button @click="openDialog">Nova pessoa</Button>
+      <Button @click="openDialog()">Nova pessoa</Button>
     </div>
 
     <section class="space-y-4">
