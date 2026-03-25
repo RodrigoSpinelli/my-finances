@@ -27,9 +27,18 @@
         >
           Categorias
         </NuxtLink>
+        <NuxtLink
+          to="/transactions"
+          class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+          active-class="text-primary"
+        >
+          Transações
+        </NuxtLink>
       </div>
       <div class="ml-auto">
-        <shared-toggle-color-mode />
+        <ClientOnly>
+          <shared-toggle-color-mode aria-label="Alternar modo claro/escuro" />
+        </ClientOnly>
       </div>
     </div>
   </nav>
