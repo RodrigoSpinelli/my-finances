@@ -1,0 +1,300 @@
+<script setup lang="ts">
+import { DialogClose, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import type { Category } from "~/interfaces/category";
+import type { Person } from "~/interfaces/person";
+import type { Transaction } from "~/interfaces/transaction";
+
+type TransactionApi = Transaction & {
+  categories: Category | null;
+  people: Person | null;
+};
+
+const props = defineProps<{
+  id?: string;
+}>();
+
+const emit = defineEmits<{
+  (e: "submit"): void;
+}>();
+
+interface Form {
+  amount: string;
+  categoryId: string | undefined;
+  date: string | undefined;
+  description: string;
+  personId: string;
+  type: NonNullable<TransactionType>;
+}
+
+const form = reactive<Form>({
+  amount: "",
+  categoryId: undefined,
+  date: undefined,
+  description: "",
+  personId: "",
+  type: "expense",
+});
+
+const categories = ref<Category[]>([]);
+const people = ref<Person[]>([]);
+
+const typeOptions = [
+  { label: "Receita", value: "income" },
+  { label: "Despesa", value: "expense" },
+];
+
+const categoryOptions = computed(() => {
+  return categories.value.map((c) => ({ label: c.name, value: c.id }));
+});
+
+const personOptions = computed(() => {
+  return people.value.map((p) => ({
+    label: `${p.first_name} ${p.last_name}`.trim(),
+    value: p.id,
+  }));
+});
+
+function todayIso() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+async function loadLookups() {
+  try {
+    const [c, p] = await Promise.all([
+      $fetch<{ categories: Category[] }>("/api/categories"),
+      $fetch<{ people: Person[] }>("/api/people"),
+    ]);
+    categories.value = c.categories;
+    people.value = p.people;
+  } catch (error) {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description:
+        error instanceof Error ? error.message : "Erro ao carregar listas",
+    });
+  }
+}
+
+const submit = () => {
+  props.id ? update() : create();
+};
+
+const create = async () => {
+  try {
+    const amount = Number(form.amount.replace(",", "."));
+    if (!Number.isFinite(amount) || amount <= 0) {
+      useToast({
+        type: "error",
+        title: "Valor inválido",
+        description: "Informe um valor maior que zero.",
+      });
+      return;
+    }
+    if (!form.date) {
+      useToast({
+        type: "error",
+        title: "Data obrigatória",
+        description: "Selecione ou informe a data da transação.",
+      });
+      return;
+    }
+    if (!form.personId) {
+      useToast({
+        type: "error",
+        title: "Pessoa obrigatória",
+        description: "Selecione uma pessoa.",
+      });
+      return;
+    }
+
+    await $fetch("/api/transactions", {
+      method: "POST",
+      body: {
+        amount,
+        category_id: form.categoryId === null ? null : form.categoryId,
+        date: form.date,
+        description: form.description.trim() || null,
+        person_id: form.personId,
+        type: form.type,
+      },
+    });
+    useToast({
+      type: "success",
+      title: "Sucesso!",
+      description: "Transação registrada com sucesso",
+    });
+    resetForm();
+    emit("submit");
+  } catch (error) {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description:
+        error instanceof Error ? error.message : "Erro ao salvar transação",
+    });
+  }
+};
+
+const update = async () => {
+  try {
+    const amount = Number(form.amount.replace(",", "."));
+    if (!Number.isFinite(amount) || amount <= 0) {
+      useToast({
+        type: "error",
+        title: "Valor inválido",
+        description: "Informe um valor maior que zero.",
+      });
+      return;
+    }
+    if (!form.date) {
+      useToast({
+        type: "error",
+        title: "Data obrigatória",
+        description: "Selecione ou informe a data da transação.",
+      });
+      return;
+    }
+    if (!form.personId) {
+      useToast({
+        type: "error",
+        title: "Pessoa obrigatória",
+        description: "Selecione uma pessoa.",
+      });
+      return;
+    }
+
+    await $fetch(`/api/transactions/${props.id}`, {
+      method: "PATCH",
+      body: {
+        amount,
+        category_id: form.categoryId === null ? null : form.categoryId,
+        date: form.date,
+        description: form.description.trim() || null,
+        person_id: form.personId,
+        type: form.type,
+      },
+    });
+    useToast({
+      type: "success",
+      title: "Sucesso!",
+      description: "Transação atualizada com sucesso",
+    });
+    resetForm();
+    emit("submit");
+  } catch (error) {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description:
+        error instanceof Error ? error.message : "Erro ao atualizar transação",
+    });
+  }
+};
+
+const getData = async () => {
+  if (!props.id) return;
+  try {
+    const { transaction: t } = await $fetch<{ transaction: TransactionApi }>(
+      `/api/transactions/${props.id}`,
+    );
+    form.amount = String(t.amount);
+    form.categoryId = t.category_id ?? undefined;
+    form.date = t.date;
+    form.description = t.description ?? "";
+    form.personId = t.person_id;
+    form.type = (t.type ?? "expense") as NonNullable<TransactionType>;
+  } catch (error) {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description:
+        error instanceof Error ? error.message : "Erro ao buscar transação",
+    });
+  }
+};
+
+function resetForm() {
+  form.amount = "";
+  form.categoryId = undefined;
+  form.date = todayIso();
+  form.description = "";
+  form.personId = "";
+  form.type = "expense";
+}
+
+onMounted(() => {
+  loadLookups();
+  props.id && getData();
+});
+</script>
+
+<template>
+  <form class="space-y-4" @submit.prevent="submit">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="space-y-2">
+        <Label for="tx_type">Tipo</Label>
+        <shared-select
+          id="tx_type"
+          v-model="form.type"
+          placeholder="Tipo"
+          :options="typeOptions"
+        />
+      </div>
+      <shared-date-input
+        id="tx_date"
+        v-model="form.date"
+        label="Data"
+        required
+      />
+    </div>
+    <shared-input
+      id="tx_amount"
+      v-model="form.amount"
+      icon="lucide:banknote"
+      label="Valor (R$)"
+      placeholder="0,00"
+      type="text"
+      required
+    />
+    <div class="space-y-2">
+      <Label for="tx_person">Pessoa</Label>
+      <shared-select
+        id="tx_person"
+        v-model="form.personId"
+        placeholder="Quem é esta transação?"
+        :options="personOptions"
+      />
+    </div>
+    <div class="space-y-2">
+      <Label for="tx_category">Categoria</Label>
+      <shared-select
+        id="tx_category"
+        v-model="form.categoryId"
+        placeholder="Categoria (opcional)"
+        :options="categoryOptions"
+      />
+    </div>
+    <div class="space-y-2">
+      <Label for="tx_description">Descrição (opcional)</Label>
+      <Textarea
+        id="tx_description"
+        v-model="form.description"
+        placeholder="Ex.: Supermercado semanal"
+        rows="3"
+      />
+    </div>
+    <DialogFooter>
+      <DialogClose as-child>
+        <Button variant="outline"> Cancelar </Button>
+      </DialogClose>
+      <Button type="submit"> Salvar </Button>
+    </DialogFooter>
+  </form>
+</template>
