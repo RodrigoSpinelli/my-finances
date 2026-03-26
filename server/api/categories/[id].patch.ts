@@ -1,6 +1,5 @@
 import { serverSupabaseClient } from "#supabase/server"
 import type { Database, TablesUpdate } from "~/types/database.types"
-import { normalizePersonColorField } from "../../utils/person-color-api"
 
 type TransactionType = Database["public"]["Enums"]["transaction_type"]
 
@@ -38,11 +37,6 @@ export default defineEventHandler(async (event) => {
       })
     }
     patch.type = body.type
-  }
-
-  if (body.color !== undefined) {
-    const c = normalizePersonColorField(body.color)
-    patch.color = c ?? "gray"
   }
 
   if (body.icon !== undefined) {

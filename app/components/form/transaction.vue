@@ -3,12 +3,14 @@ import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Category } from "~/interfaces/category";
-import type { Person } from "~/interfaces/person";
 import type { Transaction } from "~/interfaces/transaction";
+import type { Database } from "~/types/database.types";
+import { getFetchErrorMessage } from "~/utils/fetch-error";
+
+type TransactionType = Database["public"]["Enums"]["transaction_type"];
 
 type TransactionApi = Transaction & {
   categories: Category | null;
-  people: Person | null;
 };
 
 const props = defineProps<{
@@ -24,21 +26,32 @@ interface Form {
   categoryId: string | undefined;
   date: string | undefined;
   description: string;
-  personId: string;
-  type: NonNullable<TransactionType>;
+  type: TransactionType;
+}
+
+function todayIso() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function categoryIdForApi(id: string | undefined | null): string | null {
+  if (id === undefined || id === null) return null;
+  const t = String(id).trim();
+  return t.length ? t : null;
 }
 
 const form = reactive<Form>({
   amount: "",
   categoryId: undefined,
-  date: undefined,
+  date: todayIso(),
   description: "",
-  personId: "",
   type: "expense",
 });
 
 const categories = ref<Category[]>([]);
-const people = ref<Person[]>([]);
 
 const typeOptions = [
   { label: "Receita", value: "income" },
@@ -49,29 +62,12 @@ const categoryOptions = computed(() => {
   return categories.value.map((c) => ({ label: c.name, value: c.id }));
 });
 
-const personOptions = computed(() => {
-  return people.value.map((p) => ({
-    label: `${p.first_name} ${p.last_name}`.trim(),
-    value: p.id,
-  }));
-});
-
-function todayIso() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 async function loadLookups() {
   try {
-    const [c, p] = await Promise.all([
+    const [c] = await Promise.all([
       $fetch<{ categories: Category[] }>("/api/categories"),
-      $fetch<{ people: Person[] }>("/api/people"),
     ]);
     categories.value = c.categories;
-    people.value = p.people;
   } catch (error) {
     useToast({
       type: "error",
@@ -105,23 +101,14 @@ const create = async () => {
       });
       return;
     }
-    if (!form.personId) {
-      useToast({
-        type: "error",
-        title: "Pessoa obrigatória",
-        description: "Selecione uma pessoa.",
-      });
-      return;
-    }
 
     await $fetch("/api/transactions", {
       method: "POST",
       body: {
         amount,
-        category_id: form.categoryId === null ? null : form.categoryId,
+        category_id: categoryIdForApi(form.categoryId),
         date: form.date,
         description: form.description.trim() || null,
-        person_id: form.personId,
         type: form.type,
       },
     });
@@ -136,8 +123,7 @@ const create = async () => {
     useToast({
       type: "error",
       title: "Erro!",
-      description:
-        error instanceof Error ? error.message : "Erro ao salvar transação",
+      description: getFetchErrorMessage(error, "Erro ao salvar transação"),
     });
   }
 };
@@ -161,23 +147,14 @@ const update = async () => {
       });
       return;
     }
-    if (!form.personId) {
-      useToast({
-        type: "error",
-        title: "Pessoa obrigatória",
-        description: "Selecione uma pessoa.",
-      });
-      return;
-    }
 
     await $fetch(`/api/transactions/${props.id}`, {
       method: "PATCH",
       body: {
         amount,
-        category_id: form.categoryId === null ? null : form.categoryId,
+        category_id: categoryIdForApi(form.categoryId),
         date: form.date,
         description: form.description.trim() || null,
-        person_id: form.personId,
         type: form.type,
       },
     });
@@ -192,8 +169,7 @@ const update = async () => {
     useToast({
       type: "error",
       title: "Erro!",
-      description:
-        error instanceof Error ? error.message : "Erro ao atualizar transação",
+      description: getFetchErrorMessage(error, "Erro ao atualizar transação"),
     });
   }
 };
@@ -208,14 +184,12 @@ const getData = async () => {
     form.categoryId = t.category_id ?? undefined;
     form.date = t.date;
     form.description = t.description ?? "";
-    form.personId = t.person_id;
-    form.type = (t.type ?? "expense") as NonNullable<TransactionType>;
+    form.type = (t.type ?? "expense") as TransactionType;
   } catch (error) {
     useToast({
       type: "error",
       title: "Erro!",
-      description:
-        error instanceof Error ? error.message : "Erro ao buscar transação",
+      description: getFetchErrorMessage(error, "Erro ao buscar transação"),
     });
   }
 };
@@ -225,7 +199,6 @@ function resetForm() {
   form.categoryId = undefined;
   form.date = todayIso();
   form.description = "";
-  form.personId = "";
   form.type = "expense";
 }
 
@@ -263,15 +236,6 @@ onMounted(() => {
       type="text"
       required
     />
-    <div class="space-y-2">
-      <Label for="tx_person">Pessoa</Label>
-      <shared-select
-        id="tx_person"
-        v-model="form.personId"
-        placeholder="Quem é esta transação?"
-        :options="personOptions"
-      />
-    </div>
     <div class="space-y-2">
       <Label for="tx_category">Categoria</Label>
       <shared-select

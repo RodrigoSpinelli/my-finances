@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 
 const formComponents = {
-  person: defineAsyncComponent(() => import("@/components/form/person.vue")),
   category: defineAsyncComponent(() => import("@/components/form/category.vue")),
   transaction: defineAsyncComponent(() => import("@/components/form/transaction.vue")),
 } as const;

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { DialogFooter } from "@/components/ui/dialog";
-import { PERSON_COLORS } from "~/constants/person-colors";
 import type { Tables } from "~/types/database.types";
 
 type Category = Tables<"categories">;
@@ -28,7 +27,14 @@ const form = reactive<Form>({
   icon: "lucide:tag",
 });
 
-const colors = PERSON_COLORS;
+const colors = [
+  { name: "red", bg: "bg-red-600", ring: "ring-red-500", border: "border-red-500" },
+  { name: "yellow", bg: "bg-yellow-400", ring: "ring-yellow-400", border: "border-yellow-400" },
+  { name: "green", bg: "bg-green-400", ring: "ring-green-500", border: "border-green-500" },
+  { name: "cyan", bg: "bg-cyan-500", ring: "ring-cyan-500", border: "border-cyan-500" },
+  { name: "blue", bg: "bg-blue-500", ring: "ring-blue-500", border: "border-blue-500" },
+  { name: "purple", bg: "bg-purple-500", ring: "ring-purple-500", border: "border-purple-500" },
+];
 
 const typeOptions = [
   { label: "Receita", value: "income" },

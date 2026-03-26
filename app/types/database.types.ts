@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       categories: {
@@ -41,30 +66,6 @@ export type Database = {
         }
         Relationships: []
       }
-      people: {
-        Row: {
-          color: string | null
-          created_at: string
-          first_name: string
-          id: string
-          last_name: string
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string
-          first_name: string
-          id?: string
-          last_name: string
-        }
-        Update: {
-          color?: string | null
-          created_at?: string
-          first_name?: string
-          id?: string
-          last_name?: string
-        }
-        Relationships: []
-      }
       transactions: {
         Row: {
           amount: number
@@ -73,7 +74,6 @@ export type Database = {
           date: string
           description: string | null
           id: string
-          person_id: string
           type: Database["public"]["Enums"]["transaction_type"] | null
         }
         Insert: {
@@ -83,7 +83,6 @@ export type Database = {
           date: string
           description?: string | null
           id?: string
-          person_id: string
           type?: Database["public"]["Enums"]["transaction_type"] | null
         }
         Update: {
@@ -93,7 +92,6 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
-          person_id?: string
           type?: Database["public"]["Enums"]["transaction_type"] | null
         }
         Relationships: [
@@ -102,13 +100,6 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_person_id_fkey"
-            columns: ["person_id"]
-            isOneToOne: false
-            referencedRelation: "people"
             referencedColumns: ["id"]
           },
         ]
@@ -247,6 +238,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       transaction_type: ["income", "expense"],

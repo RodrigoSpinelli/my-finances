@@ -22,13 +22,6 @@ async function signOut() {
           Início
         </NuxtLink>
         <NuxtLink
-          to="/people"
-          class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
-          active-class="text-primary"
-        >
-          Pessoas
-        </NuxtLink>
-        <NuxtLink
           to="/categories"
           class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
           active-class="text-primary"

@@ -1,11 +1,11 @@
-export interface PersonColorOption {
+export interface ColorOption {
   name: string;
   bg: string;
   ring: string;
   border: string;
 }
 
-export const PERSON_COLORS: PersonColorOption[] = [
+export const colorOptions: ColorOption[] = [
   {
     name: "red",
     bg: "bg-red-600",
@@ -44,9 +44,9 @@ export const PERSON_COLORS: PersonColorOption[] = [
   },
 ];
 
-export function getPersonColorByName(
+export function getColorOptionByName(
   name: string | null | undefined,
-): PersonColorOption | undefined {
+): ColorOption | undefined {
   if (!name) return undefined;
-  return PERSON_COLORS.find((c) => c.name === name);
+  return colorOptions.find((c) => c.name === name);
 }

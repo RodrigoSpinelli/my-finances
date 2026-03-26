@@ -19,7 +19,7 @@ useHead({
 
 useSeoMeta({
   title: "Transações",
-  description: "Registre receitas e despesas com data, pessoa e categoria.",
+  description: "Registre receitas e despesas com data e categoria opcional.",
 })
 
 definePageMeta({
@@ -30,14 +30,9 @@ type CategoryBrief = Pick<
   Tables<"categories">,
   "id" | "name" | "icon" | "type" | "color"
 >
-type PersonBrief = Pick<
-  Tables<"people">,
-  "id" | "first_name" | "last_name" | "color"
->
 
 type TransactionRow = Tables<"transactions"> & {
   categories: CategoryBrief | null
-  people: PersonBrief | null
 }
 
 const { data, refresh, status, pending } = await useFetch<{
@@ -48,7 +43,6 @@ const headers: TableHeaders[] = [
   { label: "Data" },
   { label: "Tipo" },
   { label: "Valor", align: "right" },
-  { label: "Pessoa" },
   { label: "Categoria" },
   { label: "Descrição" },
   { label: "Ações", align: "right" },
@@ -92,9 +86,6 @@ const filteredTransactions = computed(() => {
       typeLabel(t.type),
       money.format(t.amount),
       t.description ?? "",
-      t.people
-        ? `${t.people.first_name} ${t.people.last_name}`
-        : "",
       t.categories?.name ?? "",
     ]
     return parts.join(" ").toLowerCase().includes(q)
@@ -140,6 +131,10 @@ async function confirmDelete() {
 const dialogTitle = computed(() =>
   dialogId.value ? "Editar transação" : "Nova transação",
 )
+
+async function afterTransactionSave() {
+  await refresh()
+}
 </script>
 
 <template>
@@ -149,7 +144,7 @@ const dialogTitle = computed(() =>
         Transações
       </h1>
       <p class="text-muted-foreground text-sm">
-        Registre receitas e despesas com data, pessoa e categoria opcional.
+        Registre receitas e despesas com data e categoria opcional.
       </p>
     </header>
 
@@ -217,13 +212,6 @@ const dialogTitle = computed(() =>
             {{ money.format(t.amount) }}
           </TableCell>
           <TableCell>
-            {{
-              t.people
-                ? `${t.people.first_name} ${t.people.last_name}`.trim()
-                : "—"
-            }}
-          </TableCell>
-          <TableCell>
             <span
               v-if="t.categories"
               class="inline-flex items-center gap-2"
@@ -233,7 +221,7 @@ const dialogTitle = computed(() =>
             </span>
             <span v-else class="text-muted-foreground">—</span>
           </TableCell>
-          <TableCell class="max-w-[12rem] truncate text-muted-foreground text-sm">
+          <TableCell class="max-w-48 truncate text-muted-foreground text-sm">
             {{ t.description || "—" }}
           </TableCell>
           <TableCell class="text-right">
@@ -266,7 +254,7 @@ const dialogTitle = computed(() =>
       description="Preencha os dados da movimentação financeira."
       form="transaction"
       :id="dialogId"
-      @submit="refresh"
+      @submit="afterTransactionSave"
     />
 
     <AlertDialog v-model:open="deleteOpen">

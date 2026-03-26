@@ -121,7 +121,7 @@ const openDialog = (id?: string) => {
             </span>
           </TableCell>
           <TableCell>
-            <shared-person-color-swatch :color="c.color" />
+            <shared-color-swatch :color="c.color" />
           </TableCell>
           <TableCell class="text-right">
             <div class="flex flex-wrap justify-end gap-2">

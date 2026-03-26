@@ -1,6 +1,5 @@
 import { serverSupabaseClient } from "#supabase/server"
 import type { Database, TablesInsert } from "~/types/database.types"
-import { normalizePersonColorField } from "../../utils/person-color-api"
 
 type TransactionType = Database["public"]["Enums"]["transaction_type"]
 
@@ -28,16 +27,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const colorNormalized = normalizePersonColorField(body.color)
-  const color = colorNormalized ?? "gray"
-
   const icon =
     (typeof body.icon === "string" ? body.icon.trim() : "") || "lucide:tag"
 
   const payload: TablesInsert<"categories"> = {
     name,
     type,
-    color,
     icon,
   }
 

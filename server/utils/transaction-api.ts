@@ -6,29 +6,9 @@ export type TransactionType = Database["public"]["Enums"]["transaction_type"]
 
 export async function assertTransactionRelations(
   event: H3Event,
-  opts: { person_id: string; type: TransactionType; category_id?: string | null },
+  opts: { type: TransactionType; category_id?: string | null },
 ) {
   const client = await serverSupabaseClient(event)
-
-  const { data: person, error: personError } = await client
-    .from("people")
-    .select("id")
-    .eq("id", opts.person_id)
-    .maybeSingle()
-
-  if (personError) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: personError.message,
-    })
-  }
-
-  if (!person) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Pessoa não encontrada",
-    })
-  }
 
   if (!opts.category_id)
     return

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
-import { getPersonColorByName } from "~/constants/person-colors";
+import { getColorOptionByName } from "~/constants/colors";
 
 const props = defineProps<{
   color: string | null | undefined;
 }>();
 
-const swatch = computed(() => getPersonColorByName(props.color));
+const swatch = computed(() => getColorOptionByName(props.color));
 
 const swatchClass = computed(() => {
   const c = swatch.value;

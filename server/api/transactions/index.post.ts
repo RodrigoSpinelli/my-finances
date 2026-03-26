@@ -13,7 +13,6 @@ export default defineEventHandler(async (event) => {
     category_id?: string | null
     date?: string
     description?: string | null
-    person_id?: string
     type?: TransactionType
   }>(event)
 
@@ -22,14 +21,6 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 400,
       statusMessage: "amount deve ser um número maior que zero",
-    })
-  }
-
-  const person_id = body.person_id?.trim()
-  if (!person_id) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "person_id é obrigatório",
     })
   }
 
@@ -54,7 +45,6 @@ export default defineEventHandler(async (event) => {
       : String(body.description).trim() || null
 
   await assertTransactionRelations(event, {
-    person_id,
     type,
     category_id,
   })
@@ -64,19 +54,16 @@ export default defineEventHandler(async (event) => {
     category_id,
     date,
     description,
-    person_id,
     type,
   }
 
   const client = await serverSupabaseClient(event)
+  // Só `*` no retorno: join com categories após insert costuma falhar com RLS
+  // (política de SELECT diferente da de INSERT). A lista recarrega o relacionamento.
   const { data, error } = await client
     .from("transactions")
     .insert(payload)
-    .select(`
-      *,
-      categories ( id, name, icon, type, color ),
-      people ( id, first_name, last_name, color )
-    `)
+    .select("*")
     .single()
 
   if (error) {

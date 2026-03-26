@@ -20,7 +20,6 @@ export default defineEventHandler(async (event) => {
     category_id?: string | null
     date?: string
     description?: string | null
-    person_id?: string
     type?: TransactionType
   }>(event)
 
@@ -71,17 +70,6 @@ export default defineEventHandler(async (event) => {
         : String(body.description).trim() || null
   }
 
-  if (body.person_id !== undefined) {
-    const pid = body.person_id.trim()
-    if (!pid) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: "person_id não pode ser vazio",
-      })
-    }
-    patch.person_id = pid
-  }
-
   if (body.type !== undefined) {
     if (body.type !== "income" && body.type !== "expense") {
       throw createError({
@@ -110,7 +98,6 @@ export default defineEventHandler(async (event) => {
     amount: patch.amount ?? row.amount,
     date: patch.date ?? row.date,
     description: patch.description !== undefined ? patch.description : row.description,
-    person_id: patch.person_id ?? row.person_id,
     type: (patch.type ?? row.type) as TransactionType | null,
     category_id: patch.category_id !== undefined ? patch.category_id : row.category_id,
   }
@@ -123,7 +110,6 @@ export default defineEventHandler(async (event) => {
   }
 
   await assertTransactionRelations(event, {
-    person_id: effective.person_id,
     type: effective.type,
     category_id: effective.category_id,
   })
@@ -132,11 +118,7 @@ export default defineEventHandler(async (event) => {
     .from("transactions")
     .update(patch)
     .eq("id", id)
-    .select(`
-      *,
-      categories ( id, name, icon, type, color ),
-      people ( id, first_name, last_name, color )
-    `)
+    .select("*")
     .maybeSingle()
 
   if (error) {

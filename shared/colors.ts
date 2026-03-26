@@ -1,8 +1,8 @@
 /**
- * Cores permitidas para pessoas: valor salvo no banco = token Tailwind (ex.: "orange").
- * Pré-visualização: classe `bg-{token}-600` (definida explicitamente para o scanner do Tailwind).
+ * Paleta nomeada (ex.: categorias): valor no banco = token Tailwind (`orange`, `blue`, …).
+ * Pré-visualização: classe `bg-{token}-600` (literal para o scanner do Tailwind).
  */
-export const PERSON_COLOR_NAMES = [
+export const COLOR_NAMES = [
   "red",
   "orange",
   "amber",
@@ -25,10 +25,10 @@ export const PERSON_COLOR_NAMES = [
   "zinc",
 ] as const
 
-export type PersonColorName = (typeof PERSON_COLOR_NAMES)[number]
+export type ColorName = (typeof COLOR_NAMES)[number]
 
 /** Classes literais para o Tailwind incluir no bundle */
-export const PERSON_SWATCH_BG: Record<PersonColorName, string> = {
+export const COLOR_SWATCH_BG: Record<ColorName, string> = {
   red: "bg-red-600",
   orange: "bg-orange-600",
   amber: "bg-amber-600",
@@ -51,24 +51,25 @@ export const PERSON_SWATCH_BG: Record<PersonColorName, string> = {
   zinc: "bg-zinc-600",
 }
 
-export function isPersonColorName(value: string): value is PersonColorName {
-  return (PERSON_COLOR_NAMES as readonly string[]).includes(value)
+export function isColorName(value: string): value is ColorName {
+  return (COLOR_NAMES as readonly string[]).includes(value)
 }
 
 /** Classe da bolinha: `bg-{nome}-600` quando o nome é válido */
-export function personSwatchBgClass(
+export function colorSwatchBgClass(
   name: string | null | undefined,
 ): string {
-  if (!name || !isPersonColorName(name)) return "bg-muted"
-  return PERSON_SWATCH_BG[name]
+  if (!name || !isColorName(name)) return "bg-muted"
+  return COLOR_SWATCH_BG[name]
 }
 
-export const PERSON_COLOR_OPTIONS: {
-  value: PersonColorName
+/** Opções para selects com bolinha de cor (valor = token salvo no banco) */
+export const COLOR_SELECT_OPTIONS: {
+  value: ColorName
   label: string
   swatchClass: string
-}[] = PERSON_COLOR_NAMES.map((value) => ({
+}[] = COLOR_NAMES.map((value) => ({
   value,
   label: value,
-  swatchClass: PERSON_SWATCH_BG[value],
+  swatchClass: COLOR_SWATCH_BG[value],
 }))
