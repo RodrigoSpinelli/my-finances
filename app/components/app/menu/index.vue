@@ -2,6 +2,12 @@
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
+const displayLabel = computed(() => {
+  const meta = user.value?.user_metadata as { display_name?: string } | undefined;
+  const n = meta?.display_name?.trim();
+  return n || user.value?.email || "";
+});
+
 async function signOut() {
   await supabase.auth.signOut();
   await navigateTo("/login");
@@ -35,14 +41,21 @@ async function signOut() {
         >
           Transações
         </NuxtLink>
+        <NuxtLink
+          to="/profile"
+          class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+          active-class="text-primary"
+        >
+          Perfil
+        </NuxtLink>
       </div>
       <div class="ml-auto flex items-center gap-3">
         <span
-          v-if="user?.email"
+          v-if="displayLabel"
           class="text-muted-foreground hidden max-w-48 truncate text-xs sm:inline"
-          :title="user.email"
+          :title="displayLabel"
         >
-          {{ user.email }}
+          {{ displayLabel }}
         </span>
         <Button variant="ghost" size="sm" class="text-muted-foreground" @click="signOut">
           Sair

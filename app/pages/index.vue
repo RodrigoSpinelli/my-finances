@@ -20,6 +20,13 @@
       >
         transações
       </NuxtLink>
+      ou abra o
+      <NuxtLink
+        to="/profile"
+        class="text-foreground underline-offset-4 hover:underline"
+      >
+        perfil
+      </NuxtLink>
       .
     </p>
   </div>

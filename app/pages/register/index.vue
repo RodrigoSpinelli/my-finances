@@ -7,6 +7,7 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const redirectInfo = useSupabaseCookieRedirect();
 
+const displayName = ref("");
 const email = ref("");
 const password = ref("");
 const passwordConfirm = ref("");
@@ -42,6 +43,16 @@ async function onSubmit() {
     return;
   }
 
+  const name = displayName.value.trim();
+  if (!name) {
+    useToast({
+      type: "error",
+      title: "Nome obrigatório",
+      description: "Informe como quer ser chamado(a).",
+    });
+    return;
+  }
+
   loading.value = true;
   const redirectTo =
     typeof window !== "undefined"
@@ -51,7 +62,12 @@ async function onSubmit() {
   const { data, error } = await supabase.auth.signUp({
     email: email.value.trim(),
     password: password.value,
-    options: redirectTo ? { emailRedirectTo: redirectTo } : undefined,
+    options: {
+      ...(redirectTo ? { emailRedirectTo: redirectTo } : {}),
+      data: {
+        display_name: name,
+      },
+    },
   });
   loading.value = false;
 
@@ -91,6 +107,14 @@ async function onSubmit() {
     </div>
 
     <form class="space-y-4" @submit.prevent="onSubmit">
+      <shared-input
+        v-model="displayName"
+        label="Nome de exibição"
+        type="text"
+        autocomplete="name"
+        placeholder="Como quer aparecer no app"
+        required
+      />
       <shared-input
         v-model="email"
         label="E-mail"
