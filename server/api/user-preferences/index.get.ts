@@ -2,17 +2,11 @@ import { serverSupabaseClient } from "#supabase/server"
 import { requireAuthUserId } from "../../utils/require-auth-user"
 
 export default defineEventHandler(async (event) => {
-  const id = getRouterParam(event, "id")
-  if (!id) {
-    throw createError({ statusCode: 400, statusMessage: "id ausente" })
-  }
-
   const userId = await requireAuthUserId(event)
   const client = await serverSupabaseClient(event)
   const { data, error } = await client
-    .from("categories")
+    .from("user_preferences")
     .select("*")
-    .eq("id", id)
     .eq("user_id", userId)
     .maybeSingle()
 
@@ -23,12 +17,5 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!data) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "Categoria não encontrada",
-    })
-  }
-
-  return { category: data }
+  return { preferences: data }
 })

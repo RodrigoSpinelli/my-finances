@@ -6,7 +6,7 @@ export type TransactionType = Database["public"]["Enums"]["transaction_type"]
 
 export async function assertTransactionRelations(
   event: H3Event,
-  opts: { type: TransactionType; category_id?: string | null },
+  opts: { type: TransactionType; category_id?: string | null; userId: string },
 ) {
   const client = await serverSupabaseClient(event)
 
@@ -17,6 +17,7 @@ export async function assertTransactionRelations(
     .from("categories")
     .select("id, type")
     .eq("id", opts.category_id)
+    .eq("user_id", opts.userId)
     .maybeSingle()
 
   if (categoryError) {

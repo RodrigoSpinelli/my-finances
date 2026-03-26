@@ -14,11 +14,13 @@ export type TransactionWithCategory = TxRow & {
 
 export async function listTransactionsWithCategories(
   event: H3Event,
+  userId: string,
 ): Promise<TransactionWithCategory[]> {
   const client = await serverSupabaseClient(event)
   const { data: txs, error: txError } = await client
     .from("transactions")
     .select("*")
+    .eq("user_id", userId)
     .order("date", { ascending: false })
     .order("created_at", { ascending: false })
 
@@ -43,6 +45,7 @@ export async function listTransactionsWithCategories(
     const { data: cats, error: catError } = await client
       .from("categories")
       .select("id, name, icon, type, color")
+      .eq("user_id", userId)
       .in("id", catIds)
 
     if (catError) {
@@ -67,12 +70,14 @@ export async function listTransactionsWithCategories(
 export async function getTransactionWithCategory(
   event: H3Event,
   id: string,
+  userId: string,
 ): Promise<TransactionWithCategory> {
   const client = await serverSupabaseClient(event)
   const { data: t, error: txError } = await client
     .from("transactions")
     .select("*")
     .eq("id", id)
+    .eq("user_id", userId)
     .maybeSingle()
 
   if (txError) {
@@ -95,6 +100,7 @@ export async function getTransactionWithCategory(
       .from("categories")
       .select("id, name, icon, type, color")
       .eq("id", t.category_id)
+      .eq("user_id", userId)
       .maybeSingle()
 
     if (catError) {

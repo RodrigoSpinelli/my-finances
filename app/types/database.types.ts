@@ -47,6 +47,7 @@ export type Database = {
           id: string
           name: string
           type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
         }
         Insert: {
           color?: string
@@ -55,6 +56,7 @@ export type Database = {
           id?: string
           name: string
           type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
         }
         Update: {
           color?: string
@@ -63,6 +65,7 @@ export type Database = {
           id?: string
           name?: string
           type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -75,6 +78,7 @@ export type Database = {
           description: string | null
           id: string
           type: Database["public"]["Enums"]["transaction_type"] | null
+          user_id: string
         }
         Insert: {
           amount: number
@@ -84,6 +88,7 @@ export type Database = {
           description?: string | null
           id?: string
           type?: Database["public"]["Enums"]["transaction_type"] | null
+          user_id: string
         }
         Update: {
           amount?: number
@@ -93,6 +98,7 @@ export type Database = {
           description?: string | null
           id?: string
           type?: Database["public"]["Enums"]["transaction_type"] | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -104,6 +110,27 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          preferred_currency: Database["public"]["Enums"]["currency_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          preferred_currency: Database["public"]["Enums"]["currency_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          preferred_currency?: Database["public"]["Enums"]["currency_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -112,6 +139,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      currency_type: "EUR" | "BRL" | "USD"
       transaction_type: "income" | "expense"
     }
     CompositeTypes: {
@@ -243,6 +271,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      currency_type: ["EUR", "BRL", "USD"],
       transaction_type: ["income", "expense"],
     },
   },

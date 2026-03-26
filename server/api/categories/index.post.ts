@@ -1,9 +1,12 @@
 import { serverSupabaseClient } from "#supabase/server"
 import type { Database, TablesInsert } from "~/types/database.types"
+import { requireAuthUserId } from "../../utils/require-auth-user"
 
 type TransactionType = Database["public"]["Enums"]["transaction_type"]
 
 export default defineEventHandler(async (event) => {
+  const userId = await requireAuthUserId(event)
+
   const body = await readBody<{
     name?: string
     type?: TransactionType
@@ -34,6 +37,7 @@ export default defineEventHandler(async (event) => {
     name,
     type,
     icon,
+    user_id: userId,
   }
 
   const client = await serverSupabaseClient(event)

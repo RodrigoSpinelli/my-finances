@@ -1,5 +1,6 @@
 import { serverSupabaseClient } from "#supabase/server"
 import type { Tables, TablesUpdate } from "~/types/database.types"
+import { requireAuthUserId } from "../../utils/require-auth-user"
 import type { TransactionType } from "../../utils/transaction-api"
 import {
   assertIsoDate,
@@ -23,11 +24,13 @@ export default defineEventHandler(async (event) => {
     type?: TransactionType
   }>(event)
 
+  const userId = await requireAuthUserId(event)
   const client = await serverSupabaseClient(event)
   const { data: existing, error: fetchError } = await client
     .from("transactions")
     .select("*")
     .eq("id", id)
+    .eq("user_id", userId)
     .maybeSingle()
 
   if (fetchError) {
@@ -112,12 +115,14 @@ export default defineEventHandler(async (event) => {
   await assertTransactionRelations(event, {
     type: effective.type,
     category_id: effective.category_id,
+    userId,
   })
 
   const { data, error } = await client
     .from("transactions")
     .update(patch)
     .eq("id", id)
+    .eq("user_id", userId)
     .select("*")
     .maybeSingle()
 

@@ -1,5 +1,6 @@
 import { serverSupabaseClient } from "#supabase/server"
 import type { Database, TablesUpdate } from "~/types/database.types"
+import { requireAuthUserId } from "../../utils/require-auth-user"
 
 type TransactionType = Database["public"]["Enums"]["transaction_type"]
 
@@ -51,11 +52,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const userId = await requireAuthUserId(event)
   const client = await serverSupabaseClient(event)
   const { data, error } = await client
     .from("categories")
     .update(patch)
     .eq("id", id)
+    .eq("user_id", userId)
     .select()
     .maybeSingle()
 

@@ -1,5 +1,6 @@
 import { serverSupabaseClient } from "#supabase/server"
 import type { TablesInsert } from "~/types/database.types"
+import { requireAuthUserId } from "../../utils/require-auth-user"
 import {
   assertIsoDate,
   assertTransactionRelations,
@@ -8,6 +9,8 @@ import {
 } from "../../utils/transaction-api"
 
 export default defineEventHandler(async (event) => {
+  const userId = await requireAuthUserId(event)
+
   const body = await readBody<{
     amount?: unknown
     category_id?: string | null
@@ -47,6 +50,7 @@ export default defineEventHandler(async (event) => {
   await assertTransactionRelations(event, {
     type,
     category_id,
+    userId,
   })
 
   const payload: TablesInsert<"transactions"> = {
@@ -55,6 +59,7 @@ export default defineEventHandler(async (event) => {
     date,
     description,
     type,
+    user_id: userId,
   }
 
   const client = await serverSupabaseClient(event)
