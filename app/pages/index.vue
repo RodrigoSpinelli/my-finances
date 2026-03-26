@@ -13,7 +13,21 @@
       >
         pessoas
       </NuxtLink>
-      e outras áreas em breve.
+      ,
+      <NuxtLink
+        to="/categories"
+        class="text-foreground underline-offset-4 hover:underline"
+      >
+        categorias
+      </NuxtLink>
+      e
+      <NuxtLink
+        to="/transactions"
+        class="text-foreground underline-offset-4 hover:underline"
+      >
+        transações
+      </NuxtLink>
+      .
     </p>
   </div>
 </template>
