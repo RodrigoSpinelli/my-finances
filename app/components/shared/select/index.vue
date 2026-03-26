@@ -34,9 +34,6 @@ const model = defineModel<string>();
       >
         {{ option.label }}
       </SelectItem>
-      <SelectItem v-if="options.length === 0" :disabled="true" value="">
-        Não encontramos nada.
-      </SelectItem>
     </SelectContent>
   </Select>
 </template>
