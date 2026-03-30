@@ -4,5 +4,6 @@
   <div>
     <AppMenu />
     <slot />
+    <base-footer />
   </div>
 </template>
