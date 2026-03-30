@@ -51,6 +51,49 @@ export const COLOR_SWATCH_BG: Record<ColorName, string> = {
   zinc: "bg-zinc-600",
 }
 
+/** Hex equivalente ao token Tailwind `*-600` (gráficos / APIs). */
+export const COLOR_HEX_600: Record<ColorName, string> = {
+  red: "#dc2626",
+  orange: "#ea580c",
+  amber: "#d97706",
+  yellow: "#ca8a04",
+  lime: "#65a30d",
+  green: "#16a34a",
+  emerald: "#059669",
+  teal: "#0d9488",
+  cyan: "#0891b2",
+  sky: "#0284c7",
+  blue: "#2563eb",
+  indigo: "#4f46e5",
+  violet: "#7c3aed",
+  purple: "#9333ea",
+  fuchsia: "#c026d3",
+  pink: "#db2777",
+  rose: "#e11d48",
+  slate: "#475569",
+  gray: "#4b5563",
+  zinc: "#52525b",
+}
+
+const CHART_FALLBACK_HEX = [
+  "#6366f1",
+  "#8b5cf6",
+  "#ec4899",
+  "#14b8a6",
+  "#f97316",
+  "#eab308",
+] as const
+
+/** Cor para gráficos quando o token é válido; senão alterna fallbacks por índice. */
+export function resolveCategoryChartHex(
+  name: string | null | undefined,
+  rankIndex: number,
+): string {
+  if (name && isColorName(name))
+    return COLOR_HEX_600[name]
+  return CHART_FALLBACK_HEX[rankIndex % CHART_FALLBACK_HEX.length]!
+}
+
 export function isColorName(value: string): value is ColorName {
   return (COLOR_NAMES as readonly string[]).includes(value)
 }
