@@ -155,7 +155,7 @@ const monthLabel = computed(() => {
 
 <template>
   <Card class="flex flex-col">
-    <CardHeader class="gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <CardHeader class="gap-4 flex items-center justify-between">
       <div class="space-y-1">
         <CardTitle>Despesas por categoria</CardTitle>
         <CardDescription>
