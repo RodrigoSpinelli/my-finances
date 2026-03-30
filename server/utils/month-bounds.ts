@@ -34,3 +34,25 @@ export function monthDateBounds(ym: string): { start: string, end: string } {
     end: `${y}-${pad(m)}-${pad(lastDay)}`,
   }
 }
+
+/** `deltaMonths` negativo recua (ex.: -1 = mês anterior). */
+export function shiftYearMonth(ym: string, deltaMonths: number): string {
+  const p = parseYearMonth(ym)
+  if (!p) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "month deve estar no formato YYYY-MM",
+    })
+  }
+  let { y, m } = p
+  m += deltaMonths
+  while (m > 12) {
+    m -= 12
+    y += 1
+  }
+  while (m < 1) {
+    m += 12
+    y -= 1
+  }
+  return `${y}-${String(m).padStart(2, "0")}`
+}
