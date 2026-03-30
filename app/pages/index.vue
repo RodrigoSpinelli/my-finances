@@ -4,11 +4,13 @@ import type { Category } from "~/interfaces/category";
 const { data, refresh } = await useFetch<{ categories: Category[] }>("/api/categories");
 
 const isOpen = computed(() => (data.value?.categories?.length ?? 0) === 0);
+
+const user = useSupabaseUser();
 </script>
 
 <template>
   <div class="mx-auto max-w-4xl space-y-4 p-6">
-    <h1 class="text-2xl font-semibold tracking-tight">Minhas finanças</h1>
+    <h1 class="text-2xl font-semibold tracking-tight">Bem-vindo(a), {{ user?.user_metadata?.display_name }}!</h1>
     <p class="text-muted-foreground text-sm">
       Use o menu para gerenciar
       <NuxtLink
