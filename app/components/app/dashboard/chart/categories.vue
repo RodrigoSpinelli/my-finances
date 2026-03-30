@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Database } from "~/types/database.types"
 import { Progress } from "@/components/ui/progress"
+import { TagIcon } from "lucide-vue-next"
 
 type TransactionType = Database["public"]["Enums"]["transaction_type"]
 
@@ -31,8 +32,9 @@ const {
 
 <template>
   <Card>
-    <CardHeader>
-      <CardTitle>Maiores gastos por categoria</CardTitle>
+    <CardHeader class="gap-4 flex flex-wrap items-center justify-between border-b">
+      <CardTitle>Gastos por categoria</CardTitle>
+      <TagIcon />
     </CardHeader>
     <CardContent class="space-y-4">
       <div
