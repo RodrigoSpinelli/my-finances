@@ -69,6 +69,33 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_goals: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          month: number | null
+          user_id: string
+          year: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          month?: number | null
+          user_id: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month?: number | null
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
