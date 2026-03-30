@@ -27,6 +27,8 @@
     "@nuxtjs/color-mode": "4.0.0",
     "@nuxtjs/supabase": "2.0.4",
     "@tanstack/vue-table": "^8.21.3",
+    "@unovis/ts": "1.6.4",
+    "@unovis/vue": "^1.6.4",
     "@vueuse/core": "^14.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -29,5 +29,6 @@
       </NuxtLink>
       .
     </p>
+    <app-dashboard-chart-categories />
   </div>
 </template>
