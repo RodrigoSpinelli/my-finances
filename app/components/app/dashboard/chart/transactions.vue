@@ -9,12 +9,8 @@ import {
   ChartTooltipContent,
   componentToString,
 } from "@/components/ui/chart";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
 import { Badge } from "@/components/ui/badge";
-import { BanknoteArrowUp, BanknoteArrowDown } from "lucide-vue-next";
+import { BanknoteArrowUp, BanknoteArrowDown, HandCoins } from "lucide-vue-next";
 
 const SLICE_INCOME = "income";
 const SLICE_EXPENSE = "expense";
@@ -40,32 +36,23 @@ function sliceValue(row: SliceRow): number {
   return typeof v === "number" ? v : Number(v);
 }
 
-const money = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
+const percent = new Intl.NumberFormat("pt-BR", {
+  style: "percent",
+  maximumFractionDigits: 0,
+  minimumFractionDigits: 0,
 });
 
 /** Opções fixas do seletor (temporário). */
-const MONTH_OPTIONS = [
-  { value: "2026-03", label: "Março de 2026" },
-  { value: "2026-04", label: "Abril de 2026" },
-  { value: "2026-05", label: "Maio de 2026" },
-] as const;
-
-const selectedMonth = ref<string>(MONTH_OPTIONS[0]!.value);
+const props = defineProps<{
+  month: string;
+}>();
 
 const { data, pending, status } = await useFetch<MonthFlowResponse>(
   "/api/transactions/month-flow",
   {
-    query: computed(() => ({ month: selectedMonth.value })),
+    query: computed(() => ({ month: props.month })),
   },
 );
-
-const monthLabel = computed(() => {
-  return (
-    MONTH_OPTIONS.find((o) => o.value === selectedMonth.value)?.label ?? ""
-  );
-});
 
 /** Apenas duas fatias: entradas e saídas no mês. */
 const chartModel = computed(() => {
@@ -98,7 +85,12 @@ const chartModel = computed(() => {
   }
 
   const totalFlow = income + expense;
-  return { chartData, chartConfig, totalFlow };
+  const incomeShare = totalFlow > 0 ? income / totalFlow : 0;
+  return {
+    chartData,
+    chartConfig,
+    centralLabel: percent.format(incomeShare),
+  };
 });
 
 const hasMovement = computed(() => chartModel.value.chartData.length > 0);
@@ -106,24 +98,9 @@ const hasMovement = computed(() => chartModel.value.chartData.length > 0);
 
 <template>
   <Card class="flex flex-col">
-    <CardHeader class="gap-4 flex flex-wrap items-center justify-between">
-      <div class="space-y-1">
-        <CardTitle>Transações</CardTitle>
-      </div>
-      <NativeSelect
-        v-model="selectedMonth"
-        class="w-[min(100%,220px)] shrink-0"
-        aria-label="Mês de referência"
-        :disabled="pending || status === 'error'"
-      >
-        <NativeSelectOption
-          v-for="opt in MONTH_OPTIONS"
-          :key="opt.value"
-          :value="opt.value"
-        >
-          {{ opt.label }}
-        </NativeSelectOption>
-      </NativeSelect>
+    <CardHeader class="gap-4 flex flex-wrap items-center justify-between border-b">
+      <CardTitle>Transações</CardTitle>
+      <HandCoins />
     </CardHeader>
     <CardContent class="flex flex-1 flex-col pb-0">
       <div
@@ -153,7 +130,7 @@ const hasMovement = computed(() => chartModel.value.chartData.length > 0);
         :config="chartModel.chartConfig"
         class="mx-auto aspect-square max-h-[250px]"
         :style="{
-          '--vis-donut-central-label-font-size': 'var(--text-xl)',
+          '--vis-donut-central-label-font-size': 'var(--text-2xl)',
           '--vis-donut-central-label-font-weight': 'var(--font-weight-bold)',
           '--vis-donut-central-label-text-color': 'var(--foreground)',
           '--vis-donut-central-sub-label-text-color': 'var(--muted-foreground)',
@@ -161,7 +138,7 @@ const hasMovement = computed(() => chartModel.value.chartData.length > 0);
       >
         <VisSingleContainer
           :data="chartModel.chartData"
-          :margin="{ top: 30, bottom: 30 }"
+          :margin="{ top: 24, bottom: 24 }"
         >
           <VisDonut
             :value="(d: SliceRow) => sliceValue(d)"
@@ -169,9 +146,7 @@ const hasMovement = computed(() => chartModel.value.chartData.length > 0);
               (d: SliceRow) => chartModel.chartConfig[segmentKey(d)]?.color
             "
             :arc-width="30"
-            :central-label-offset-y="10"
-            :central-label="money.format(chartModel.totalFlow)"
-            :central-sub-label="monthLabel"
+            :central-label="chartModel.centralLabel"
           />
           <ChartTooltip
             :triggers="{
