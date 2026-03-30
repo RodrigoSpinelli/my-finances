@@ -69,9 +69,9 @@ const selectedMonth = ref<string>(MONTH_OPTIONS[0]!.value);
       <app-dashboard-chart-analysis :month="selectedMonth" class="col-span-4" />
       <app-dashboard-chart-transactions :month="selectedMonth" class="col-span-2" />
       <app-dashboard-chart-categories :month="selectedMonth" class="col-span-2" />
+      <app-dashboard-card-balance class="col-span-2" />
+      <app-dashboard-card-previous-balance class="col-span-2" />
     </div>
-    <div class="p-6 bg-primary"></div>
-    <div class="p-6 bg-secondary"></div>
     <shared-dialog
       v-model="isOpen"
       title="Escolha suas primeiras categorias"
