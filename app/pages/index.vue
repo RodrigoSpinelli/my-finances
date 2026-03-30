@@ -1,16 +1,9 @@
 <script setup lang="ts">
 import type { Category } from "~/interfaces/category";
 
-const isOpen = ref(false);
-const { data } = await useFetch<{
-  categories: Category[];
-}>("/api/categories", {
-  onResponse: (response) => {
-    if (response.response._data?.categories.length === 0) {
-      isOpen.value = true;
-    }
-  },
-});
+const { data, refresh } = await useFetch<{ categories: Category[] }>("/api/categories");
+
+const isOpen = computed(() => (data.value?.categories?.length ?? 0) === 0);
 </script>
 
 <template>
@@ -43,12 +36,12 @@ const { data } = await useFetch<{
     <app-dashboard-chart-categories />
     <shared-dialog
       v-model="isOpen"
-      title="Selecione categorias"
-      description="Selecione as categorias que serão usadas como principais para o seu dashboard."
+      title="Escolha suas primeiras categorias"
+      description="Selecione as categorias iniciais que você irá utilizar no seu controle financeiro. Isso ajudará a personalizar sua experiência. Você poderá adicionar ou editar categorias depois, se quiser."
       form="firstCategories"
+      @submit="refresh"
     >
       <Button>Nova categoria principal</Button>
     </shared-dialog>
-    <pre>{{ data }}</pre>
   </div>
 </template>

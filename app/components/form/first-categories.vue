@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>();
 
 const isLoading = ref(false);
+const showAlert = ref(false);
 const selectedCategories = ref<Category[]>([]);
 const categories = ref<Category[]>([
   {
@@ -78,6 +79,14 @@ const addSelectedCategory = (category: Category) => {
   }
 };
 const submit = async () => {
+  if (selectedCategories.value.length === 0) {
+    showAlert.value = true;
+    return;
+  }
+  createCategories();
+};
+
+const createCategories = async () => {
   isLoading.value = true;
   try {
     await $fetch("/api/categories/batch", {
@@ -111,7 +120,7 @@ const submit = async () => {
         v-for="category in categories"
         :key="category.name"
         :variant="category.color"
-        :class="{ 'border-2 border-primary': category.selected }"
+        :class="{ 'outline-2 outline-foreground': category.selected }"
         class="cursor-pointer"
         @click="addSelectedCategory(category)"
       >
@@ -119,9 +128,15 @@ const submit = async () => {
         {{ category.name }}
       </Badge>
     </div>
+    <shared-alert
+      v-if="showAlert && !isLoading && selectedCategories.length === 0"
+      title="Você deve selecionar pelo menos uma categoria"
+      variant="warning"
+      icon="lucide:alert-circle"
+    />
     <Button
       class="w-full"
-      :disabled="isLoading || selectedCategories.length === 0"
+      :disabled="isLoading"
       type="submit"
       :loading="isLoading"
     >
