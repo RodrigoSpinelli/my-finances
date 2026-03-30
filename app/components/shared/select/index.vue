@@ -16,14 +16,15 @@ defineProps<{
   options: Option[];
   placeholder: string;
   id?: string;
+  disabled?: boolean;
 }>();
 
 const model = defineModel<string>();
 </script>
 
 <template>
-  <Select v-model="model">
-    <SelectTrigger class="w-full" :id="id">
+  <Select v-model="model" :disabled="disabled">
+    <SelectTrigger class="w-full" :id="id" :disabled="disabled">
       <SelectValue :placeholder="placeholder" />
     </SelectTrigger>
     <SelectContent>
