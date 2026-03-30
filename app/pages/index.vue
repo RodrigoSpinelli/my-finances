@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { DashboardBalance } from "~/interfaces/balance";
 import type { Category } from "~/interfaces/category";
+import type { MonthlySpendingGoalPayload } from "~/interfaces/monthly-spending-goal";
 
 const { data, refresh } = await useFetch<{ categories: Category[] }>(
   "/api/categories",
@@ -16,6 +18,21 @@ const MONTH_OPTIONS = [
 ] as const;
 
 const selectedMonth = ref<string>(MONTH_OPTIONS[0]!.value);
+
+const { data: balanceData, pending: balancePending } =
+  await useFetch<DashboardBalance>("/api/balance", {
+    query: computed(() => ({ month: selectedMonth.value })),
+    watch: [selectedMonth],
+  });
+
+const {
+  data: spendingGoalData,
+  pending: spendingGoalPending,
+  refresh: refreshSpendingGoal,
+} = await useFetch<MonthlySpendingGoalPayload>("/api/monthly-spending-goal", {
+  query: computed(() => ({ month: selectedMonth.value })),
+  watch: [selectedMonth],
+});
 </script>
 
 <template>
@@ -66,11 +83,38 @@ const selectedMonth = ref<string>(MONTH_OPTIONS[0]!.value);
     </div>
 
     <div class="grid grid-cols-8 gap-6">
-      <app-dashboard-chart-analysis :month="selectedMonth" class="col-span-4" />
-      <app-dashboard-chart-transactions :month="selectedMonth" class="col-span-2" />
-      <app-dashboard-chart-categories :month="selectedMonth" class="col-span-2" />
-      <app-dashboard-card-balance class="col-span-2" />
-      <app-dashboard-card-previous-balance class="col-span-2" />
+      <app-dashboard-card-balance
+        :data="balanceData ?? null"
+        :pending="balancePending"
+        class="col-span-2"
+      />
+      <app-dashboard-card-previous-balance
+        :data="balanceData ?? null"
+        :pending="balancePending"
+        class="col-span-2"
+      />
+
+      <app-dashboard-card-spending-target
+        :month="selectedMonth"
+        :data="spendingGoalData ?? null"
+        :pending="spendingGoalPending"
+        class="col-span-4"
+        @saved="refreshSpendingGoal"
+      />
+
+      <app-dashboard-chart-analysis
+        :data="balanceData"
+        :pending="balancePending"
+        class="col-span-4"
+      />
+      <app-dashboard-chart-transactions
+        :month="selectedMonth"
+        class="col-span-2"
+      />
+      <app-dashboard-chart-categories
+        :month="selectedMonth"
+        class="col-span-2"
+      />
     </div>
     <shared-dialog
       v-model="isOpen"
