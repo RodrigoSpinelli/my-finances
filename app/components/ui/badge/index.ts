@@ -9,25 +9,25 @@ export const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary/90 text-primary-foreground hover:bg-primary/95 [a&]:hover:bg-primary/95",
+          "border border-primary bg-primary text-primary-foreground hover:bg-primary/90 [a&]:hover:bg-primary/90 dark:bg-primary/80 dark:border-primary/60",
         secondary:
-          "border-transparent bg-secondary/80 text-secondary-foreground hover:bg-secondary/90 [a&]:hover:bg-secondary/90",
+          "border border-secondary bg-secondary text-secondary-foreground hover:bg-secondary/90 [a&]:hover:bg-secondary/90 dark:bg-secondary/80 dark:border-secondary/60",
         destructive:
-          "border-transparent bg-destructive/90 text-white hover:bg-destructive [a&]:hover:bg-destructive focus-visible:ring-destructive/30 dark:focus-visible:ring-destructive/50 dark:bg-destructive/70",
+          "border border-destructive bg-destructive text-white hover:bg-destructive/90 [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/30 dark:focus-visible:ring-destructive/50 dark:bg-destructive/80 dark:border-destructive/60",
         outline:
-          "text-foreground/80 border-foreground/20 hover:bg-accent/40 [a&]:hover:bg-accent/40 hover:text-accent-foreground [a&]:hover:text-accent-foreground",
+          "border border-foreground/50 text-foreground hover:bg-accent/50 [a&]:hover:bg-accent/50 hover:text-accent-foreground [a&]:hover:text-accent-foreground dark:border-foreground/40",
         red: 
-          "border-red-500/50 bg-red-500/70 text-white hover:bg-red-500/90 [a&]:hover:bg-red-500/90",
+          "border border-red-500 bg-red-500 text-white hover:bg-red-600 [a&]:hover:bg-red-600 dark:bg-red-500/80 dark:border-red-600/60",
         blue: 
-          "border-blue-400/50 bg-blue-400/60 text-white hover:bg-blue-500/80 [a&]:hover:bg-blue-500/80",
+          "border border-blue-500 bg-blue-500 text-white hover:bg-blue-600 [a&]:hover:bg-blue-600 dark:bg-blue-500/80 dark:border-blue-600/60",
         purple: 
-          "border-purple-500/40 bg-purple-400/60 text-white hover:bg-purple-500 [a&]:hover:bg-purple-500",
+          "border border-purple-500 bg-purple-500 text-white hover:bg-purple-600 [a&]:hover:bg-purple-600 dark:bg-purple-500/80 dark:border-purple-600/60",
         yellow: 
-          "border-yellow-300/60 bg-yellow-200/80 text-yellow-900 hover:bg-yellow-400/90 [a&]:hover:bg-yellow-400/90",
+          "border border-yellow-400 bg-yellow-300 text-yellow-900 hover:bg-yellow-400 [a&]:hover:bg-yellow-400 dark:bg-yellow-300/90 dark:border-yellow-500/70",
         gray:
-          "border-gray-400/40 bg-gray-300/70 text-gray-800 hover:bg-gray-400/70 [a&]:hover:bg-gray-400/70",
+          "border border-gray-400 bg-gray-300 text-gray-900 hover:bg-gray-400 [a&]:hover:bg-gray-400 dark:bg-gray-400/80 dark:border-gray-600/60",
         green:
-          "border-green-500/50 bg-green-400/60 text-white hover:bg-green-600/90 [a&]:hover:bg-green-600/90",
+          "border border-green-500 bg-green-500 text-white hover:bg-green-600 [a&]:hover:bg-green-600 dark:bg-green-500/80 dark:border-green-600/60",
       },
     },
     defaultVariants: {
