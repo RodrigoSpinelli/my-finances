@@ -1,7 +1,7 @@
 import type { ChartConfig } from "."
 import { isClient } from "@vueuse/core"
 import { useId } from "reka-ui"
-import { h, render } from "vue"
+import { getCurrentInstance, h, render } from "vue"
 
 // Simple cache using a Map to store serialized object keys
 const cache = new Map<string, string>()
@@ -26,6 +26,7 @@ export function componentToString<P>(config: ChartConfig, component: Constructor
 
   // This function will be called once during mount lifecycle
   const id = useId()
+  const parentAppContext = getCurrentInstance()?.appContext
 
   // https://unovis.dev/docs/auxiliary/Crosshair#component-props
   return (_data: any, x: number | Date) => {
@@ -36,6 +37,8 @@ export function componentToString<P>(config: ChartConfig, component: Constructor
       return cachedContent
 
     const vnode = h<unknown>(component, { ...props, payload: data, config, x })
+    if (parentAppContext)
+      vnode.appContext = parentAppContext
     const div = document.createElement("div")
     render(vnode, div)
     cache.set(serializedKey, div.innerHTML)
