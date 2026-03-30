@@ -205,7 +205,7 @@ const monthLabel = computed(() => {
         :config="chartModel.chartConfig"
         class="mx-auto aspect-square max-h-[250px]"
         :style="{
-          '--vis-donut-central-label-font-size': 'var(--text-3xl)',
+          '--vis-donut-central-label-font-size': 'var(--text-xl)',
           '--vis-donut-central-label-font-weight': 'var(--font-weight-bold)',
           '--vis-donut-central-label-text-color': 'var(--foreground)',
           '--vis-donut-central-sub-label-text-color': 'var(--muted-foreground)',
