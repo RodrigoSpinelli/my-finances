@@ -9,6 +9,10 @@ interface Category {
   color: BadgeVariants["variant"];
   selected: boolean;
 }
+const emit = defineEmits<{
+  (e: "submit"): void;
+}>();
+
 const isLoading = ref(false);
 const selectedCategories = ref<Category[]>([]);
 const categories = ref<Category[]>([
@@ -82,11 +86,17 @@ const submit = async () => {
         categories: selectedCategories.value,
       },
     });
+    useToast({
+      type: "success",
+      title: "Sucesso!",
+      description: "Categorias cadastradas com sucesso",
+    });
+    emit("submit");
   } catch (error) {
     useToast({
       type: "error",
       title: "Erro!",
-      description: "Erro ao salvar categorias principais",
+      description: "Erro ao cadastrar categorias",
     });
   } finally {
     isLoading.value = false;
@@ -109,6 +119,17 @@ const submit = async () => {
         {{ category.name }}
       </Badge>
     </div>
-    <Button class="w-full" type="submit">Salvar</Button>
+    <Button
+      class="w-full"
+      :disabled="isLoading || selectedCategories.length === 0"
+      type="submit"
+      :loading="isLoading"
+    >
+      <Icon
+        :name="isLoading ? 'lucide:loader-circle' : 'lucide:save'"
+        :class="{ 'animate-spin': isLoading }"
+      />
+      {{ isLoading ? "Salvando..." : "Salvar" }}</Button
+    >
   </form>
 </template>
