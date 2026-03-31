@@ -10,6 +10,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { TableCell, TableRow } from "@/components/ui/table"
+import type { Category } from "~/interfaces/category"
 import type { Tables } from "~/types/database.types"
 import type { TableHeaders } from "~/interfaces/table"
 
@@ -27,7 +28,7 @@ definePageMeta({
 })
 
 type CategoryBrief = Pick<
-  Tables<"categories">,
+  Category,
   "id" | "name" | "icon" | "type" | "color"
 >
 

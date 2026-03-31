@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { TableCell, TableRow } from "@/components/ui/table";
-import type { Tables } from "~/types/database.types";
+import type { Category } from "~/interfaces/category";
 import type { TableHeaders } from "~/interfaces/table";
 
 useHead({
@@ -16,7 +16,6 @@ definePageMeta({
   name: "categories",
 });
 
-type Category = Tables<"categories">;
 type CategoryType = Category["type"];
 
 const { data, refresh, status, pending } = await useFetch<{

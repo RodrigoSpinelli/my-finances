@@ -5,8 +5,10 @@ import type { Tables } from "~/types/database.types"
 type TxRow = Tables<"transactions">
 type CategoryBrief = Pick<
   Tables<"categories">,
-  "id" | "name" | "icon" | "type" | "color"
->
+  "id" | "name" | "icon_id" | "type" | "color"
+> & {
+  icon: string
+}
 
 export type TransactionWithCategory = TxRow & {
   categories: CategoryBrief | null
@@ -44,7 +46,7 @@ export async function listTransactionsWithCategories(
   if (catIds.length > 0) {
     const { data: cats, error: catError } = await client
       .from("categories")
-      .select("id, name, icon, type, color")
+      .select("id, name, icon_id, type, color, icons(name)")
       .eq("user_id", userId)
       .in("id", catIds)
 
@@ -54,8 +56,15 @@ export async function listTransactionsWithCategories(
         statusMessage: catError.message,
       })
     }
-    for (const c of cats ?? []) {
-      categoryById.set(c.id, c)
+    for (const raw of cats ?? []) {
+      const row = raw as typeof raw & {
+        icons: { name: string } | null
+      }
+      const { icons, ...base } = row
+      categoryById.set(base.id, {
+        ...base,
+        icon: icons?.name ?? "lucide:tag",
+      })
     }
   }
 
@@ -96,9 +105,9 @@ export async function getTransactionWithCategory(
 
   let categories: CategoryBrief | null = null
   if (t.category_id) {
-    const { data: cat, error: catError } = await client
+    const { data: catRow, error: catError } = await client
       .from("categories")
-      .select("id, name, icon, type, color")
+      .select("id, name, icon_id, type, color, icons(name)")
       .eq("id", t.category_id)
       .eq("user_id", userId)
       .maybeSingle()
@@ -109,7 +118,16 @@ export async function getTransactionWithCategory(
         statusMessage: catError.message,
       })
     }
-    categories = cat
+    if (catRow) {
+      const row = catRow as typeof catRow & {
+        icons: { name: string } | null
+      }
+      const { icons, ...base } = row
+      categories = {
+        ...base,
+        icon: icons?.name ?? "lucide:tag",
+      }
+    }
   }
 
   return { ...t, categories }

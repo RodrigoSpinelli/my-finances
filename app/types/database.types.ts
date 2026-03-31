@@ -43,7 +43,7 @@ export type Database = {
         Row: {
           color: string
           created_at: string
-          icon: string
+          icon_id: string
           id: string
           name: string
           type: Database["public"]["Enums"]["transaction_type"]
@@ -52,7 +52,7 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
-          icon?: string
+          icon_id: string
           id?: string
           name: string
           type: Database["public"]["Enums"]["transaction_type"]
@@ -61,11 +61,37 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
-          icon?: string
+          icon_id?: string
           id?: string
           name?: string
           type?: Database["public"]["Enums"]["transaction_type"]
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_icon_id_fkey"
+            columns: ["icon_id"]
+            isOneToOne: false
+            referencedRelation: "icons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      icons: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }

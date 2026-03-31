@@ -31,10 +31,26 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const client = await serverSupabaseClient(event)
+  const { data: iconRows, error: iconsErr } = await client
+    .from("icons")
+    .select("id, name")
+
+  if (iconsErr) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: iconsErr.message,
+    })
+  }
+
+  const iconByName = new Map(
+    (iconRows ?? []).map((r) => [r.name, r.id] as const),
+  )
+
   const payloads: TablesInsert<"categories">[] = []
 
   for (let i = 0; i < items.length; i++) {
-    const raw = items[i]
+    const raw = items[i]!
     const name = raw.name?.trim()
     if (!name) {
       throw createError({
@@ -51,13 +67,20 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const icon =
+    const iconName =
       (typeof raw.icon === "string" ? raw.icon.trim() : "") || "lucide:tag"
+    const iconId = iconByName.get(iconName)
+    if (!iconId) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `categories[${i}]: ícone "${iconName}" não cadastrado na tabela icons`,
+      })
+    }
 
     const row: TablesInsert<"categories"> = {
       name,
       type,
-      icon,
+      icon_id: iconId,
       user_id: userId,
     }
 
@@ -71,7 +94,6 @@ export default defineEventHandler(async (event) => {
     payloads.push(row)
   }
 
-  const client = await serverSupabaseClient(event)
   const { data, error } = await client
     .from("categories")
     .insert(payloads)

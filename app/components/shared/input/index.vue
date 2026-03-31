@@ -37,6 +37,8 @@ const moneyDisplay = computed(() => centsToDisplayString(cents.value));
 watch(
   () => modelValue.value,
   (v) => {
+    if (!props.moneyBr)
+      return;
     const next = modelStringToCents(String(v ?? ""));
     if (next !== cents.value)
       cents.value = next;
@@ -47,6 +49,8 @@ watch(
 watch(
   cents,
   (c) => {
+    if (!props.moneyBr)
+      return;
     const s = centsToDisplayString(c);
     if (modelValue.value !== s)
       modelValue.value = s;

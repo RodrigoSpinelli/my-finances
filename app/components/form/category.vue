@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { DialogFooter } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Category } from "~/interfaces/category";
 import type { Tables } from "~/types/database.types";
-
-type Category = Tables<"categories">;
-type TransactionType = Category["type"];
 
 const props = defineProps<{
   id?: string;
@@ -11,9 +16,9 @@ const props = defineProps<{
 
 interface Form {
   name: string;
-  type: TransactionType;
+  type: Category["type"];
   color: string;
-  icon: string;
+  iconId: string;
 }
 
 const emit = defineEmits<{
@@ -24,8 +29,11 @@ const form = reactive<Form>({
   name: "",
   type: "expense",
   color: "",
-  icon: "lucide:tag",
+  iconId: "",
 });
+
+const icons = ref<Tables<"icons">[]>([]);
+const iconsPending = ref(true);
 
 const colors = [
   { name: "red", bg: "bg-red-600", ring: "ring-red-500", border: "border-red-500" },
@@ -41,6 +49,50 @@ const typeOptions = [
   { label: "Despesa", value: "expense" },
 ];
 
+async function loadIcons() {
+  iconsPending.value = true;
+  try {
+    const { icons: list } = await $fetch<{ icons: Tables<"icons">[] }>(
+      "/api/icons",
+    );
+    icons.value = list;
+    if (!props.id && list[0] && !form.iconId) {
+      form.iconId = list[0].id;
+    }
+  } catch {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description: "Não foi possível carregar os ícones",
+    });
+  } finally {
+    iconsPending.value = false;
+  }
+}
+
+async function syncFormToProps() {
+  if (props.id) {
+    await getData();
+  } else {
+    resetForm();
+  }
+}
+
+onMounted(async () => {
+  await loadIcons();
+  await syncFormToProps();
+});
+
+watch(
+  () => props.id,
+  async () => {
+    if (!icons.value.length) {
+      await loadIcons();
+    }
+    await syncFormToProps();
+  },
+);
+
 const submit = () => {
   props.id ? update() : create();
 };
@@ -49,7 +101,12 @@ const create = async () => {
   try {
     await $fetch("/api/categories", {
       method: "POST",
-      body: form,
+      body: {
+        name: form.name,
+        type: form.type,
+        color: form.color || null,
+        icon_id: form.iconId,
+      },
     });
     useToast({
       type: "success",
@@ -72,7 +129,12 @@ const update = async () => {
   try {
     await $fetch(`/api/categories/${props.id}`, {
       method: "PATCH",
-      body: form,
+      body: {
+        name: form.name,
+        type: form.type,
+        color: form.color,
+        icon_id: form.iconId,
+      },
     });
     useToast({
       type: "success",
@@ -92,6 +154,7 @@ const update = async () => {
 };
 
 const getData = async () => {
+  if (!props.id) return;
   try {
     const { category } = await $fetch<{ category: Category }>(
       `/api/categories/${props.id}`,
@@ -99,7 +162,7 @@ const getData = async () => {
     form.name = category.name;
     form.type = category.type;
     form.color = category.color ?? "";
-    form.icon = category.icon || "lucide:tag";
+    form.iconId = category.icon_id;
   } catch (error) {
     useToast({
       type: "error",
@@ -114,7 +177,7 @@ const resetForm = () => {
   form.name = "";
   form.type = "expense";
   form.color = "";
-  form.icon = "lucide:tag";
+  form.iconId = icons.value[0]?.id ?? "";
 };
 </script>
 
@@ -137,13 +200,29 @@ const resetForm = () => {
         :options="typeOptions"
       />
     </div>
-    <shared-input
-      id="category_icon"
-      v-model="form.icon"
-      icon="lucide:sparkles"
-      label="Ícone (Iconify)"
-      placeholder="lucide:shopping-cart"
-    />
+    <div class="space-y-2">
+      <Label for="category_icon">Ícone</Label>
+      <Select
+        v-model="form.iconId"
+        :disabled="iconsPending || icons.length === 0"
+      >
+        <SelectTrigger id="category_icon" class="w-full">
+          <SelectValue placeholder="Selecione um ícone" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            v-for="ic in icons"
+            :key="ic.id"
+            :value="ic.id"
+          >
+            <span class="flex items-center gap-2">
+              <Icon :name="ic.name" class="size-4 shrink-0" />
+              <span class="truncate font-mono text-xs">{{ ic.name }}</span>
+            </span>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
     <div class="max-w-xs space-y-2">
       <Label for="category_color">Cor (opcional)</Label>
       <div id="category_color" class="grid grid-cols-6 gap-2">
@@ -171,7 +250,14 @@ const resetForm = () => {
       <DialogClose as-child>
         <Button variant="outline">Cancelar</Button>
       </DialogClose>
-      <Button type="submit">Salvar</Button>
+      <Button
+        type="submit"
+        :disabled="
+          iconsPending || !form.iconId || icons.length === 0
+        "
+      >
+        Salvar
+      </Button>
     </DialogFooter>
   </form>
 </template>

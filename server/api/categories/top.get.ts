@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: cats, error: catError } = await client
     .from("categories")
-    .select("id, name, icon, type, color")
+    .select("id, name, icon_id, type, color, icons(name)")
     .eq("user_id", userId)
     .in("id", ids)
 
@@ -112,7 +112,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const catById = new Map((cats ?? []).map((c) => [c.id, c]))
+  const catById = new Map(
+    (cats ?? []).map((raw) => {
+      const row = raw as typeof raw & { icons: { name: string } | null }
+      const { icons, ...base } = row
+      return [
+        base.id,
+        { ...base, icon: icons?.name ?? "lucide:tag" },
+      ] as const
+    }),
+  )
   const amounts = ranked.map(([, s]) => s.total_amount)
   const percentages = sharePercentages(amounts)
 

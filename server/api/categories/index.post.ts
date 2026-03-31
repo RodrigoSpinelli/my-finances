@@ -1,5 +1,9 @@
 import { serverSupabaseClient } from "#supabase/server"
 import type { Database, TablesInsert } from "~/types/database.types"
+import {
+  flattenCategoryIcon,
+  type CategoryRowWithIconJoin,
+} from "../../utils/category-with-icon"
 import { requireAuthUserId } from "../../utils/require-auth-user"
 
 type TransactionType = Database["public"]["Enums"]["transaction_type"]
@@ -11,7 +15,7 @@ export default defineEventHandler(async (event) => {
     name?: string
     type?: TransactionType
     color?: string | null
-    icon?: string | null
+    icon_id?: string | null
   }>(event)
 
   const name = body.name?.trim()
@@ -30,21 +34,55 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const icon =
-    (typeof body.icon === "string" ? body.icon.trim() : "") || "lucide:tag"
+  const iconId =
+    typeof body.icon_id === "string" ? body.icon_id.trim() : ""
+  if (!iconId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "icon_id é obrigatório",
+    })
+  }
+
+  const client = await serverSupabaseClient(event)
+
+  const { data: iconRow, error: iconErr } = await client
+    .from("icons")
+    .select("id")
+    .eq("id", iconId)
+    .maybeSingle()
+
+  if (iconErr) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: iconErr.message,
+    })
+  }
+
+  if (!iconRow) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Ícone inválido",
+    })
+  }
 
   const payload: TablesInsert<"categories"> = {
     name,
     type,
-    icon,
+    icon_id: iconId,
     user_id: userId,
   }
 
-  const client = await serverSupabaseClient(event)
+  if (typeof body.color === "string") {
+    const c = body.color.trim()
+    if (c) {
+      payload.color = c
+    }
+  }
+
   const { data, error } = await client
     .from("categories")
     .insert(payload)
-    .select()
+    .select("*, icons(name)")
     .single()
 
   if (error) {
@@ -54,5 +92,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return { category: data }
+  return {
+    category: flattenCategoryIcon(data as CategoryRowWithIconJoin),
+  }
 })
