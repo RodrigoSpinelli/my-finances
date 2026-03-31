@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
 
+  /** SSR + server routes on Cloudflare Pages (Workers). */
+  nitro: {
+    preset: "cloudflare_pages",
+  },
+
   modules: [
     "@nuxt/a11y",
     "@nuxt/eslint",
