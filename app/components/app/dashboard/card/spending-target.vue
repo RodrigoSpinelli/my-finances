@@ -1,103 +1,39 @@
 <script setup lang="ts">
-import { CrosshairIcon } from "lucide-vue-next";
+import { CrosshairIcon, SquarePenIcon } from "lucide-vue-next";
 import { Progress } from "@/components/ui/progress";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import type { MonthlySpendingGoalPayload } from "~/interfaces/monthly-spending-goal";
-import { getFetchErrorMessage } from "~/utils/fetch-error";
+import type { GoalPayload } from "~/interfaces/goal";
 
 const { money } = useCurrencyFormat();
-const {
-  display,
-  setFromNumber,
-  clear,
-  numeric,
-  handleKeydown,
-  handlePaste,
-  handleInput,
-} = useMoneyInput();
 
 const props = defineProps<{
   month: string;
-  data: MonthlySpendingGoalPayload | null;
-  pending: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "saved"): void;
 }>();
 
-const goalDialogOpen = ref(false);
-const saving = ref(false);
+const isOpen = ref(false);
 
-const hasGoal = computed(() => (props.data?.goal?.amount ?? 0) > 0);
+const { data, pending, refresh } = await useFetch<GoalPayload>(
+  "/api/monthly-spending-goal",
+  {
+    query: computed(() => ({ month: props.month })),
+    watch: [() => props.month],
+  },
+);
 
-const progressPercent = computed(() => {
-  const target = props.data?.goal?.amount ?? 0;
-  if (target <= 0) return 0;
-  const spent = props.data?.spent ?? 0;
-  return Math.min(100, (spent / target) * 100);
+const hasGoal = computed(() => {
+  if (!data.value) return false;
+  return (data.value.goal?.amount ?? 0) > 0;
 });
 
-function openGoalDialog() {
-  if (props.data?.goal) setFromNumber(props.data.goal.amount);
-  else clear();
-  goalDialogOpen.value = true;
-}
-
-function onGoalAmountKeydown(e: KeyboardEvent) {
-  handleKeydown(e);
-  if (e.key === "Enter") {
-    e.preventDefault();
-    void saveGoal();
-  }
-}
-
-async function saveGoal() {
-  const amount = numeric.value;
-  if (amount <= 0) {
-    useToast({
-      type: "error",
-      title: "Valor inválido",
-      description: "Informe um valor maior que zero.",
-    });
-    return;
-  }
-  saving.value = true;
-  try {
-    await $fetch("/api/monthly-spending-goal", {
-      method: "PUT",
-      body: { month: props.month, amount },
-    });
-    useToast({
-      type: "success",
-      title: "Meta salva",
-      description: "Sua meta mensal foi atualizada.",
-    });
-    goalDialogOpen.value = false;
-    emit("saved");
-  } catch (error) {
-    useToast({
-      type: "error",
-      title: "Erro",
-      description: getFetchErrorMessage(
-        error,
-        "Não foi possível salvar a meta.",
-      ),
-    });
-  } finally {
-    saving.value = false;
-  }
-}
+const progressPercent = computed(() => {
+  const target = data.value?.goal?.amount ?? 0;
+  if (target <= 0) return 0;
+  const spent = data.value?.spent ?? 0;
+  return Math.min(100, (spent / target) * 100);
+});
 </script>
 
 <template>
@@ -120,7 +56,7 @@ async function saveGoal() {
         <button
           type="button"
           class="text-foreground font-semibold underline-offset-4 hover:underline cursor-pointer inline p-0 border-0 bg-transparent text-sm"
-          @click="openGoalDialog"
+          @click="isOpen = true"
         >
           Definir agora
         </button>
@@ -133,56 +69,21 @@ async function saveGoal() {
               {{ money.format(data?.spent ?? 0) }} /
               {{ money.format(data?.goal?.amount ?? 0) }}
             </span>
-            <button
-              type="button"
-              class="text-muted-foreground text-xs underline-offset-4 hover:underline cursor-pointer p-0 border-0 bg-transparent shrink-0"
-              @click="openGoalDialog"
-            >
-              Alterar meta
-            </button>
+            <Button variant="ghost" size="icon" @click="isOpen = true">
+              <SquarePenIcon class="size-4" />
+            </Button>
           </div>
         </div>
         <Progress :model-value="progressPercent" />
       </div>
     </CardContent>
-    <Dialog v-model:open="goalDialogOpen">
-      <DialogContent class="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Meta de gastos</DialogTitle>
-          <DialogDescription>
-            Defina quanto deseja gastar no mês selecionado no painel. O
-            progresso usa apenas despesas registradas naquele mês.
-          </DialogDescription>
-        </DialogHeader>
-        <div class="grid gap-2 py-2">
-          <Label for="goal-amount">Valor da meta</Label>
-          <Input
-            id="goal-amount"
-            :model-value="display"
-            type="text"
-            inputmode="decimal"
-            placeholder="Como na maquininha: 150000 = 1.500,00"
-            autocomplete="off"
-            @update:model-value="() => {}"
-            @keydown="onGoalAmountKeydown"
-            @paste="handlePaste"
-            @input="handleInput"
-          />
-        </div>
-        <DialogFooter class="gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            :disabled="saving"
-            @click="goalDialogOpen = false"
-          >
-            Cancelar
-          </Button>
-          <Button type="button" :disabled="saving" @click="saveGoal">
-            {{ saving ? "Salvando…" : "Salvar" }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <shared-drawer
+      v-model="isOpen"
+      title="Meta de gastos"
+      description="Defina quanto deseja gastar no mês selecionado no painel. O progresso usa apenas despesas registradas naquele mês."
+      form="setGoals"
+      :form-props="{ month }"
+      @submit="refresh"
+    />
   </Card>
 </template>

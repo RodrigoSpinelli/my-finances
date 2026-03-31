@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { Category } from "~/interfaces/category";
-import type { MonthlySpendingGoalPayload } from "~/interfaces/monthly-spending-goal";
-
 const { data, refresh } = await useFetch<{ categories: Category[] }>(
   "/api/categories",
 );
@@ -24,15 +22,6 @@ const { data: balanceData, pending: balancePending } =
     query: computed(() => ({ month: selectedMonth.value })),
     watch: [selectedMonth],
   });
-
-const {
-  data: spendingGoalData,
-  pending: spendingGoalPending,
-  refresh: refreshSpendingGoal,
-} = await useFetch<MonthlySpendingGoalPayload>("/api/monthly-spending-goal", {
-  query: computed(() => ({ month: selectedMonth.value })),
-  watch: [selectedMonth],
-});
 </script>
 
 <template>
@@ -96,10 +85,7 @@ const {
 
       <app-dashboard-card-spending-target
         :month="selectedMonth"
-        :data="spendingGoalData ?? null"
-        :pending="spendingGoalPending"
         class="col-span-4"
-        @saved="refreshSpendingGoal"
       />
 
       <app-dashboard-chart-analysis
