@@ -6,6 +6,11 @@ import type { Category } from "~/interfaces/category";
 import type { Transaction } from "~/interfaces/transaction";
 import type { Database } from "~/types/database.types";
 import { getFetchErrorMessage } from "~/utils/fetch-error";
+import {
+  formatMoneyInputBr,
+  MONEY_INPUT_DEFAULT_DISPLAY,
+  parseMoneyInputBr,
+} from "~/utils/money-input";
 
 type TransactionType = Database["public"]["Enums"]["transaction_type"];
 
@@ -44,7 +49,7 @@ function categoryIdForApi(id: string | undefined | null): string | null {
 }
 
 const form = reactive<Form>({
-  amount: "",
+  amount: MONEY_INPUT_DEFAULT_DISPLAY,
   categoryId: undefined,
   date: todayIso(),
   description: "",
@@ -84,8 +89,8 @@ const submit = () => {
 
 const create = async () => {
   try {
-    const amount = Number(form.amount.replace(",", "."));
-    if (!Number.isFinite(amount) || amount <= 0) {
+    const amount = parseMoneyInputBr(form.amount);
+    if (amount == null || amount <= 0) {
       useToast({
         type: "error",
         title: "Valor inválido",
@@ -103,7 +108,7 @@ const create = async () => {
     }
 
     await $fetch("/api/transactions", {
-      method: "POST",
+      method: "post",
       body: {
         amount,
         category_id: categoryIdForApi(form.categoryId),
@@ -130,8 +135,8 @@ const create = async () => {
 
 const update = async () => {
   try {
-    const amount = Number(form.amount.replace(",", "."));
-    if (!Number.isFinite(amount) || amount <= 0) {
+    const amount = parseMoneyInputBr(form.amount);
+    if (amount == null || amount <= 0) {
       useToast({
         type: "error",
         title: "Valor inválido",
@@ -148,8 +153,11 @@ const update = async () => {
       return;
     }
 
-    await $fetch(`/api/transactions/${props.id}`, {
-      method: "PATCH",
+    await $fetch("/api/transactions/:id", {
+      method: "patch",
+      params: {
+        id: props.id,
+      },
       body: {
         amount,
         category_id: categoryIdForApi(form.categoryId),
@@ -180,7 +188,7 @@ const getData = async () => {
     const { transaction: t } = await $fetch<{ transaction: TransactionApi }>(
       `/api/transactions/${props.id}`,
     );
-    form.amount = String(t.amount);
+    form.amount = formatMoneyInputBr(t.amount);
     form.categoryId = t.category_id ?? undefined;
     form.date = t.date;
     form.description = t.description ?? "";
@@ -195,7 +203,7 @@ const getData = async () => {
 };
 
 function resetForm() {
-  form.amount = "";
+  form.amount = MONEY_INPUT_DEFAULT_DISPLAY;
   form.categoryId = undefined;
   form.date = todayIso();
   form.description = "";
@@ -230,9 +238,10 @@ onMounted(() => {
     <shared-input
       id="tx_amount"
       v-model="form.amount"
+      money-br
       icon="lucide:banknote"
       label="Valor (R$)"
-      placeholder="0,00"
+      placeholder="00,00"
       type="text"
       required
     />

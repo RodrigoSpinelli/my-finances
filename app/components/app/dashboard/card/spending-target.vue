@@ -15,6 +15,16 @@ import { Button } from "@/components/ui/button";
 import type { MonthlySpendingGoalPayload } from "~/interfaces/monthly-spending-goal";
 import { getFetchErrorMessage } from "~/utils/fetch-error";
 
+const {
+  display,
+  setFromNumber,
+  clear,
+  numeric,
+  handleKeydown,
+  handlePaste,
+  handleInput,
+} = useMoneyInput();
+
 const props = defineProps<{
   month: string;
   data: MonthlySpendingGoalPayload | null;
@@ -31,7 +41,6 @@ const money = new Intl.NumberFormat("pt-BR", {
 });
 
 const goalDialogOpen = ref(false);
-const formAmount = ref("");
 const saving = ref(false);
 
 const hasGoal = computed(() => (props.data?.goal?.amount ?? 0) > 0);
@@ -44,13 +53,22 @@ const progressPercent = computed(() => {
 });
 
 function openGoalDialog() {
-  formAmount.value = props.data?.goal ? String(props.data.goal.amount) : "";
+  if (props.data?.goal) setFromNumber(props.data.goal.amount);
+  else clear();
   goalDialogOpen.value = true;
 }
 
+function onGoalAmountKeydown(e: KeyboardEvent) {
+  handleKeydown(e);
+  if (e.key === "Enter") {
+    e.preventDefault();
+    void saveGoal();
+  }
+}
+
 async function saveGoal() {
-  const amount = Number(formAmount.value.replace(",", "."));
-  if (!Number.isFinite(amount) || amount <= 0) {
+  const amount = numeric.value;
+  if (amount <= 0) {
     useToast({
       type: "error",
       title: "Valor inválido",
@@ -144,12 +162,15 @@ async function saveGoal() {
           <Label for="goal-amount">Valor da meta (R$)</Label>
           <Input
             id="goal-amount"
-            v-model="formAmount"
+            :model-value="display"
             type="text"
             inputmode="decimal"
-            placeholder="Ex.: 1500 ou 1500,50"
+            placeholder="Como na maquininha: 150000 = 1.500,00"
             autocomplete="off"
-            @keydown.enter.prevent="saveGoal"
+            @update:model-value="() => {}"
+            @keydown="onGoalAmountKeydown"
+            @paste="handlePaste"
+            @input="handleInput"
           />
         </div>
         <DialogFooter class="gap-2">
