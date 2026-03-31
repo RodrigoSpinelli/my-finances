@@ -8,13 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const formComponents = {
-  category: defineAsyncComponent(() => import("@/components/form/category.vue")),
-  transaction: defineAsyncComponent(() => import("@/components/form/transaction.vue")),
-  firstCategories: defineAsyncComponent(() => import("@/components/form/first-categories.vue")),
-} as const;
-
-type FormKey = keyof typeof formComponents;
+const { formComponents } = useFormComponents();
 
 const emit = defineEmits<{
   (e: "submit"): void;
@@ -23,7 +17,7 @@ const emit = defineEmits<{
 defineProps<{
   title: string;
   description?: string;
-  form: FormKey;
+  form: FormComponentKey;
   id?: string;
 }>();
 
