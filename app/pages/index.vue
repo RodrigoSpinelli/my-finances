@@ -5,6 +5,14 @@ const { data, refresh } = await useFetch<{ categories: Category[] }>(
   "/api/categories",
 );
 
+definePageMeta({
+  name: "dashboard",
+});
+
+useHead({
+  title: "Dashboard",
+});
+
 const isOpen = computed(() => (data.value?.categories?.length ?? 0) === 0);
 
 const user = useSupabaseUser();
@@ -89,8 +97,7 @@ const { data: balanceData, pending: balancePending } =
       />
 
       <app-dashboard-chart-analysis
-        :data="balanceData"
-        :pending="balancePending"
+        :month="selectedMonth"
         class="col-span-4"
       />
       <app-dashboard-chart-transactions

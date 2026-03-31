@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import type {
-  ChartConfig,
-} from "@/components/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart"
 import { CurveType } from "@unovis/ts"
-
 import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
-import { TrendingUp } from "lucide-vue-next"
+import { TrendingDown } from "lucide-vue-next"
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -22,59 +18,128 @@ import {
   componentToString,
 } from "@/components/ui/chart"
 
-const description = "A line chart"
+const SLICE_KEY = "expense"
 
-const chartData = [
-  { date: new Date("2024-01-01"), desktop: 186 },
-  { date: new Date("2024-02-01"), desktop: 305 },
-  { date: new Date("2024-03-01"), desktop: 237 },
-  { date: new Date("2024-04-01"), desktop: 73 },
-  { date: new Date("2024-05-01"), desktop: 209 },
-  { date: new Date("2024-06-01"), desktop: 214 },
-]
+interface ExpenseDailyRow {
+  date: string
+  amount: number
+}
 
-type Data = typeof chartData[number]
+interface ExpenseDailyResponse {
+  month: string
+  daily: ExpenseDailyRow[]
+  month_total: number
+}
+
+const props = defineProps<{
+  month: string
+}>()
+
+const { data, pending } = await useFetch<ExpenseDailyResponse>(
+  "/api/transactions/expense-daily",
+  {
+    query: computed(() => ({ month: props.month })),
+  },
+)
+
+const { formatMoney } = useCurrencyFormat()
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  [SLICE_KEY]: {
+    label: "Gastos no dia",
     color: "var(--chart-1)",
   },
 } satisfies ChartConfig
+
+type ChartPoint = { date: Date; expense: number }
+
+const chartData = computed<ChartPoint[]>(() => {
+  const rows = data.value?.daily ?? []
+  return rows.map(r => ({
+    date: new Date(`${r.date}T12:00:00`),
+    expense: r.amount,
+  }))
+})
+
+const monthTotalLabel = computed(() =>
+  formatMoney(data.value?.month_total ?? 0),
+)
+
+const hasExpenses = computed(() => (data.value?.month_total ?? 0) > 0)
+
+const crosshairTemplate = componentToString(
+  chartConfig,
+  ChartTooltipContent,
+  {
+    hideLabel: false,
+    labelFormatter: (d: number | Date) =>
+      (d instanceof Date ? d : new Date(d)).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+      }),
+  },
+)
 </script>
 
 <template>
-  <Card>
-    <CardHeader>
-      <CardTitle>Line Chart - Linear</CardTitle>
-      <CardDescription>January - June 2024</CardDescription>
+  <Card class="flex flex-col">
+    <CardHeader class="gap-1 border-b">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <CardTitle>Análise de gastos</CardTitle>
+        <TrendingDown class="text-muted-foreground size-5 shrink-0" />
+      </div>
+      <CardDescription>
+        Evolução dos gastos por dia no mês · Total: {{ monthTotalLabel }}
+      </CardDescription>
     </CardHeader>
-    <CardContent>
-      <ChartContainer :config="chartConfig">
+    <CardContent class="flex flex-1 flex-col pt-4">
+      <div
+        v-if="pending"
+        class="text-muted-foreground flex min-h-[220px] items-center justify-center text-sm"
+      >
+        Carregando…
+      </div>
+      <div
+        v-else-if="!hasExpenses"
+        class="text-muted-foreground flex min-h-[220px] flex-col items-center justify-center gap-1 px-4 text-center text-sm"
+      >
+        <p>Nenhum gasto registrado neste mês.</p>
+        <p class="text-xs">
+          Registre despesas em
+          <NuxtLink
+            to="/transactions"
+            class="text-foreground underline-offset-4 hover:underline"
+          >
+            transações
+          </NuxtLink>
+          .
+        </p>
+      </div>
+      <ChartContainer
+        v-else
+        :config="chartConfig"
+        class="min-h-[220px] w-full"
+      >
         <VisXYContainer
           :data="chartData"
           :margin="{ left: -24 }"
           :y-domain="[0, undefined]"
         >
           <VisLine
-            :x="(d: Data) => d.date"
-            :y="(d: Data) => d.desktop"
-            :color="chartConfig.desktop.color"
+            :x="(d: ChartPoint) => d.date"
+            :y="(d: ChartPoint) => d.expense"
+            :color="chartConfig.expense.color"
             :curve-type="CurveType.Linear"
           />
           <VisAxis
             type="x"
-            :x="(d: Data) => d.date"
+            :x="(d: ChartPoint) => d.date"
             :tick-line="false"
             :domain-line="false"
             :grid-line="false"
             :num-ticks="6"
-            :tick-format="(d: number) => {
-              const date = new Date(d)
-              return date.toLocaleDateString('en-US', {
-                month: 'short',
-              })
-            }"
+            :tick-format="(d: number) =>
+              new Date(d).toLocaleDateString('pt-BR', { day: 'numeric' })"
             :tick-values="chartData.map(d => d.date)"
           />
           <VisAxis
@@ -85,19 +150,12 @@ const chartConfig = {
           />
           <ChartTooltip />
           <ChartCrosshair
-            :template="componentToString(chartConfig, ChartTooltipContent, { hideLabel: true })"
-            :color="chartConfig.desktop.color"
+            v-if="crosshairTemplate"
+            :template="crosshairTemplate"
+            :color="chartConfig.expense.color"
           />
         </VisXYContainer>
       </ChartContainer>
     </CardContent>
-    <CardFooter class="flex-col items-start gap-2 text-sm">
-      <div class="flex gap-2 font-medium leading-none">
-        Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
-      </div>
-      <div class="leading-none text-muted-foreground">
-        Showing total visitors for the last 6 months
-      </div>
-    </CardFooter>
   </Card>
 </template>
