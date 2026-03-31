@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import type { MonthlySpendingGoalPayload } from "~/interfaces/monthly-spending-goal";
 import { getFetchErrorMessage } from "~/utils/fetch-error";
 
+const { money } = useCurrencyFormat();
 const {
   display,
   setFromNumber,
@@ -34,11 +35,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "saved"): void;
 }>();
-
-const money = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
 
 const goalDialogOpen = ref(false);
 const saving = ref(false);
@@ -159,7 +155,7 @@ async function saveGoal() {
           </DialogDescription>
         </DialogHeader>
         <div class="grid gap-2 py-2">
-          <Label for="goal-amount">Valor da meta (R$)</Label>
+          <Label for="goal-amount">Valor da meta</Label>
           <Input
             id="goal-amount"
             :model-value="display"

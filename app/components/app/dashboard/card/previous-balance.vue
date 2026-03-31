@@ -7,10 +7,7 @@ defineProps<{
   pending: boolean;
 }>();
 
-const money = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+const { money } = useCurrencyFormat();
 
 const pct = new Intl.NumberFormat("pt-BR", {
   style: "percent",

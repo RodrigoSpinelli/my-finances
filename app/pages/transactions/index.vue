@@ -54,10 +54,7 @@ const dialogId = ref<string | undefined>(undefined)
 const deleteOpen = ref(false)
 const deleteId = ref<string | null>(null)
 
-const money = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-})
+const { money } = useCurrencyFormat()
 
 const transactions = computed(() => data.value?.transactions ?? [])
 
@@ -84,7 +81,7 @@ const filteredTransactions = computed(() => {
     const parts = [
       formatDate(t.date),
       typeLabel(t.type),
-      money.format(t.amount),
+      money.value.format(t.amount),
       t.description ?? "",
       t.categories?.name ?? "",
     ]
@@ -107,7 +104,7 @@ async function confirmDelete() {
     return
   try {
     await $fetch(`/api/transactions/${deleteId.value}`, {
-      method: "DELETE",
+      method: "DELETE" as any,
     })
     useToast({
       type: "success",
