@@ -22,7 +22,7 @@ const mobileNavOpen = ref(false);
 const userMenuOpen = ref(false);
 
 const navItems = [
-  { to: "/", label: "Início" },
+  { to: "/dashboard", label: "Início" },
   { to: "/categories", label: "Categorias" },
   { to: "/transactions", label: "Transações" },
   { to: "/profile", label: "Perfil" },
@@ -105,7 +105,7 @@ function closeMobileNav() {
         </div>
 
         <NuxtLink
-          to="/"
+          to="/dashboard"
           class="text-primary flex shrink-0 items-center rounded-md outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Ir para início"
         >

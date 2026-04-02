@@ -1,173 +1,193 @@
 <script setup lang="ts">
-import type { DashboardBalance } from "~/interfaces/balance";
-import type { Category } from "~/interfaces/category";
-import type { GoalPayload } from "~/interfaces/goal";
-import type {
-  ExpenseDailyResponse,
-  MonthFlowResponse,
-  CategoryData,
-} from "~/interfaces/dashboard";
-
-const { data, refresh } = await useFetch<{ categories: Category[] }>(
-  "/api/categories",
-);
+import {
+  ArrowRight,
+  LayoutDashboard,
+  PieChart,
+  Tags,
+  Target,
+  Wallet,
+} from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 definePageMeta({
-  name: "dashboard",
+  layout: "landing",
 });
 
 useHead({
-  title: "Dashboard",
+  title: "Porquinho Financeiro — controle suas finanças com clareza",
+  meta: [
+    {
+      name: "description",
+      content:
+        "Organize categorias, registre transações, acompanhe saldo e metas mensais com gráficos simples. Comece grátis.",
+    },
+  ],
 });
-
-const isOpen = computed(() => (data.value?.categories?.length ?? 0) === 0);
 
 const user = useSupabaseUser();
 
-const MONTH_OPTIONS = [
-  { value: "2026-03", label: "Março de 2026" },
-  { value: "2026-04", label: "Abril de 2026" },
-  { value: "2026-05", label: "Maio de 2026" },
+watch(
+  () => user.value,
+  (u) => {
+    if (u) navigateTo("/dashboard");
+  },
+  { immediate: true },
+);
+
+const features = [
+  {
+    icon: LayoutDashboard,
+    title: "Painel em um só lugar",
+    description:
+      "Saldo, mês anterior e visão do fluxo do mês sem planilhas complicadas.",
+  },
+  {
+    icon: Wallet,
+    title: "Transações rápidas",
+    description:
+      "Lance despesas e receitas e mantenha o histórico sempre atualizado.",
+  },
+  {
+    icon: Tags,
+    title: "Categorias do seu jeito",
+    description:
+      "Personalize categorias e ícones para refletir como você realmente gasta.",
+  },
+  {
+    icon: Target,
+    title: "Meta de gastos",
+    description:
+      "Defina um teto mensal e acompanhe o quanto já foi utilizado.",
+  },
+  {
+    icon: PieChart,
+    title: "Gráficos que explicam",
+    description:
+      "Veja distribuição por categoria e tendências para decidir melhor.",
+  },
 ] as const;
-
-const month = ref<string>(MONTH_OPTIONS[1]!.value);
-
-const {
-  data: balanceData,
-  pending: balancePending,
-  refresh: balanceRefresh,
-} = await useFetch<DashboardBalance>("/api/balance", {
-  query: computed(() => ({ month: month.value })),
-  watch: [month],
-});
-
-const {
-  data: expenseDailyData,
-  pending: expenseDailyPending,
-  refresh: expenseDailyRefresh,
-} = await useFetch<ExpenseDailyResponse>("/api/transactions/expense-daily", {
-  query: computed(() => ({ month: month.value })),
-  watch: [month],
-});
-
-const {
-  data: goalData,
-  pending: goalPending,
-  refresh: goalRefresh,
-} = await useFetch<GoalPayload>("/api/monthly-spending-goal", {
-  query: computed(() => ({ month: month.value })),
-  watch: [month],
-});
-
-const {
-  data: monthFlowData,
-  pending: monthFlowPending,
-  refresh: monthFlowRefresh,
-} = await useFetch<MonthFlowResponse>("/api/transactions/month-flow", {
-  query: computed(() => ({ month: month.value })),
-  watch: [month],
-});
-
-const {
-  data: categoriesData,
-  pending: categoriesPending,
-  refresh: categoriesRefresh,
-} = await useFetch<CategoryData>("/api/categories/top", {
-  query: computed(() => ({ month: month.value })),
-  watch: [month],
-});
-
-const getAll = async () => {
-  await Promise.all([
-    balanceRefresh(),
-    expenseDailyRefresh(),
-    goalRefresh(),
-    monthFlowRefresh(),
-    categoriesRefresh(),
-  ]);
-};
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl space-y-4 p-6">
-    <div class="flex items-center justify-between">
-      <div class="grid gap-4">
-        <h1 class="text-2xl font-semibold tracking-tight">
-          Bem-vindo(a), {{ user?.user_metadata?.display_name }}!
-        </h1>
-      </div>
-      <div class="flex items-center gap-2">
-        <shared-drawer
-          form="transaction"
-          title="Nova despesa"
-          description="Registre uma nova despesa"
-          @submit="getAll"
-        >
-          <template #trigger>
-            <Button size="sm" class="group">
-              <Icon name="lucide:plus" />
-              Nova transação
-            </Button>
-          </template>
-        </shared-drawer>
-        <NativeSelect
-          v-model="month"
-          class="w-[min(100%,220px)] shrink-0"
-          aria-label="Mês de referência"
-        >
-          <NativeSelectOption
-            v-for="opt in MONTH_OPTIONS"
-            :key="opt.value"
-            :value="opt.value"
+  <div>
+    <section
+      class="from-muted/40 via-background to-background relative overflow-hidden bg-linear-to-b"
+    >
+      <div
+        class="from-primary/8 pointer-events-none absolute inset-0 bg-linear-to-b via-transparent to-transparent dark:from-primary/12"
+        aria-hidden="true"
+      />
+      <div
+        class="relative mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24 lg:py-28"
+      >
+        <div class="mx-auto max-w-2xl text-center">
+          <p
+            class="text-primary mb-4 text-sm font-medium tracking-wide uppercase"
           >
-            {{ opt.label }}
-          </NativeSelectOption>
-        </NativeSelect>
+            Controle financeiro pessoal
+          </p>
+          <h1
+            class="text-foreground text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl lg:leading-[1.1]"
+          >
+            Suas finanças, organizadas com o cuidado de um porquinho.
+          </h1>
+          <p
+            class="text-muted-foreground mx-auto mt-5 max-w-lg text-base leading-relaxed sm:text-lg"
+          >
+            Registre o que entra e o que sai, categorize com clareza e use
+            gráficos para enxergar padrões — tudo em português, direto ao ponto.
+          </p>
+          <div
+            class="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
+          >
+            <Button size="lg" class="gap-2" as-child>
+              <NuxtLink to="/register">
+                Começar agora
+                <ArrowRight class="size-4" />
+              </NuxtLink>
+            </Button>
+            <Button size="lg" variant="outline" as-child>
+              <NuxtLink to="/login">
+                Já tenho conta
+              </NuxtLink>
+            </Button>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="grid lg:grid-cols-8 sm:grid-cols-4 grid-cols-1 gap-6">
-      <app-dashboard-card-balance
-        :data="balanceData ?? null"
-        :pending="balancePending"
-        class="sm:col-span-2"
-      />
-      <app-dashboard-card-previous-balance
-        :data="balanceData ?? null"
-        :pending="balancePending"
-        class="sm:col-span-2"
-      />
+    <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+          Tudo que você precisa no dia a dia
+        </h2>
+        <p class="text-muted-foreground mt-3 text-base">
+          Funcionalidades pensadas para quem quer praticidade, não mais uma
+          ferramenta difícil de manter.
+        </p>
+      </div>
+      <div
+        class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8"
+      >
+        <Card
+          v-for="item in features"
+          :key="item.title"
+          class="border-border/80 bg-card/80 shadow-sm backdrop-blur-sm"
+        >
+          <CardHeader class="gap-3">
+            <div
+              class="bg-primary/10 text-primary inline-flex size-10 items-center justify-center rounded-lg"
+            >
+              <component
+                :is="item.icon"
+                class="size-5"
+                aria-hidden="true"
+              />
+            </div>
+            <CardTitle class="text-lg">
+              {{ item.title }}
+            </CardTitle>
+            <CardDescription class="text-base leading-relaxed">
+              {{ item.description }}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    </section>
 
-      <app-dashboard-card-spending-target
-        :month="month"
-        :pending="goalPending"
-        :data="goalData ?? null"
-        @refresh="refresh"
-        class="lg:col-span-4 sm:col-span-4"
-      />
-
-      <app-dashboard-chart-analysis
-        :pending="expenseDailyPending"
-        :data="expenseDailyData ?? null"
-        class="sm:col-span-4"
-      />
-      <app-dashboard-chart-transactions
-        :pending="monthFlowPending"
-        :data="monthFlowData ?? null"
-        class="lg:col-span-2 sm:col-span-2"
-      />
-      <app-dashboard-chart-categories
-        :pending="categoriesPending"
-        :data="categoriesData ?? null"
-        class="lg:col-span-2 sm:col-span-2"
-      />
-    </div>
-    <shared-dialog
-      v-model="isOpen"
-      title="Escolha suas primeiras categorias"
-      description="Selecione as categorias iniciais que você irá utilizar no seu controle financeiro. Isso ajudará a personalizar sua experiência. Você poderá adicionar ou editar categorias depois, se quiser."
-      form="firstCategories"
-      @submit="refresh"
-    />
+    <section
+      class="border-border from-muted/30 to-background border-y bg-linear-to-r py-16 sm:py-20"
+    >
+      <div
+        class="mx-auto max-w-5xl px-4 text-center sm:px-6"
+      >
+        <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+          Pronto para colocar ordem no bolso?
+        </h2>
+        <p class="text-muted-foreground mx-auto mt-3 max-w-lg text-base">
+          Crie sua conta em poucos minutos e comece a registrar suas
+          movimentações hoje mesmo.
+        </p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button size="lg" class="min-w-[200px] gap-2" as-child>
+            <NuxtLink to="/register">
+              Criar conta grátis
+              <ArrowRight class="size-4" />
+            </NuxtLink>
+          </Button>
+          <Button size="lg" variant="ghost" as-child>
+            <NuxtLink to="/login">
+              Entrar
+            </NuxtLink>
+          </Button>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
