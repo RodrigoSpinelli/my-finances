@@ -36,6 +36,11 @@ function sliceValue(row: SliceRow): number {
   return typeof v === "number" ? v : Number(v);
 }
 
+/** Cores resolvidas no `[data-chart]` via ChartStyle; o SVG usa estas vars. */
+function sliceFillCss(row: SliceRow): string {
+  return `var(--color-${segmentKey(row)})`;
+}
+
 const percent = new Intl.NumberFormat("pt-BR", {
   style: "percent",
   maximumFractionDigits: 0,
@@ -61,12 +66,12 @@ const chartModel = computed(() => {
 
   const chartConfig: ChartConfig = {
     [SLICE_INCOME]: {
-      label: "Entradas",
+      label: "Entradas ",
       color: "var(--primary)",
     },
     [SLICE_EXPENSE]: {
-      label: "Saídas",
-      color: "var(--secondary)",
+      label: "Saídas ",
+      color: "var(--destructive)",
     },
   };
 
@@ -142,9 +147,7 @@ const hasMovement = computed(() => chartModel.value.chartData.length > 0);
         >
           <VisDonut
             :value="(d: SliceRow) => sliceValue(d)"
-            :color="
-              (d: SliceRow) => chartModel.chartConfig[segmentKey(d)]?.color
-            "
+            :color="(d: SliceRow) => sliceFillCss(d)"
             :arc-width="30"
             :central-label="chartModel.centralLabel"
           />

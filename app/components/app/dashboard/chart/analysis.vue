@@ -47,7 +47,7 @@ const { formatMoney } = useCurrencyFormat()
 const chartConfig = {
   [SLICE_KEY]: {
     label: "Gastos no dia",
-    color: "var(--chart-1)",
+    color: "var(--chart-2)",
   },
 } satisfies ChartConfig
 
