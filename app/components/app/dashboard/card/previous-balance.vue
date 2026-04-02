@@ -38,7 +38,7 @@ function formatPct(value: number | null): string {
           v-if="data?.previous_change_percent != null"
           size="sm"
           :variant="
-            data.previous_change_percent < 0 ? 'destructive' : 'outline'
+            data.previous_change_percent < 0 ? 'red-light' : 'green-light'
           "
         >
           <ArrowUpIcon
@@ -48,7 +48,6 @@ function formatPct(value: number | null): string {
           <ArrowDownIcon v-else class="size-3" />
           {{ formatPct(data.previous_change_percent) }}
         </Badge>
-        <Badge v-else size="sm" variant="outline">—</Badge>
       </div>
     </CardContent>
   </Card>

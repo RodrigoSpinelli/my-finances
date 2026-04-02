@@ -37,13 +37,14 @@ function formatPct(value: number | null): string {
         <Badge
           v-if="data?.current_change_percent != null"
           size="sm"
-          :variant="data.current_change_percent < 0 ? 'destructive' : 'outline'"
+          :variant="
+            data.current_change_percent < 0 ? 'red-light' : 'green-light'
+          "
         >
           <ArrowUpIcon v-if="data.current_change_percent >= 0" class="size-3" />
           <ArrowDownIcon v-else class="size-3" />
           {{ formatPct(data.current_change_percent) }}
         </Badge>
-        <Badge v-else size="sm" variant="outline">—</Badge>
       </div>
     </CardContent>
   </Card>
