@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import { PiggyBankIcon } from "lucide-vue-next";
 const supabase = useSupabaseClient();
-const user = useSupabaseUser();
-
-const displayLabel = computed(() => {
-  const meta = user.value?.user_metadata as
-    | { display_name?: string }
-    | undefined;
-  const n = meta?.display_name?.trim();
-  return n || user.value?.email || "";
-});
 
 async function signOut() {
   await supabase.auth.signOut();
@@ -56,13 +47,7 @@ async function signOut() {
         </NuxtLink>
       </div>
       <div class="ml-auto flex items-center gap-3">
-        <span
-          v-if="displayLabel"
-          class="text-muted-foreground hidden max-w-48 truncate text-xs sm:inline"
-          :title="displayLabel"
-        >
-          {{ displayLabel }}
-        </span>
+        <shared-avatar />
         <Button
           variant="ghost"
           size="sm"
