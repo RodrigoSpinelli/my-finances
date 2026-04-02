@@ -158,7 +158,7 @@ const update = async () => {
       return;
     }
 
-    await $fetch("/api/transactions/:id", {
+    await $fetch("/api/transactions/" + props.id, {
       method: "patch",
       params: {
         id: props.id,
