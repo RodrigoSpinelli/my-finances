@@ -168,17 +168,17 @@ const openAlert = (id: string) => {
             <div class="flex flex-wrap justify-end gap-2">
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 @click="openDialog(c.id)"
               >
                 <Icon name="lucide:edit" />
               </Button>
               <Button
                 type="button"
-                variant="destructive"
+                variant="ghost"
                 aria-label="Excluir categoria"
-                size="sm"
+                size="icon"
                 @click="openAlert(c.id)"
               >
                 <Icon name="lucide:trash" />

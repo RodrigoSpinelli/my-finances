@@ -212,22 +212,22 @@ async function afterTransactionSave() {
             <span v-else class="text-muted-foreground">—</span>
           </TableCell>
           <TableCell class="max-w-48 truncate text-muted-foreground text-sm">
-            {{ t.description || "—" }}
+            {{ t.description || "Não informado" }}
           </TableCell>
           <TableCell class="text-right">
             <div class="flex flex-wrap justify-end gap-2">
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 @click="openDialog(t.id)"
               >
                 <Icon name="lucide:edit" />
               </Button>
               <Button
                 type="button"
-                variant="destructive"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 @click="askDelete(t.id)"
               >
                 <Icon name="lucide:trash" />
