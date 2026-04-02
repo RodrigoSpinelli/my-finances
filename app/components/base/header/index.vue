@@ -16,7 +16,7 @@ async function signOut() {
 
 <template>
   <nav
-    class="bg-background/95 supports-backdrop-filter:bg-background/60 border-b backdrop-blur"
+    class="bg-background/95 supports-backdrop-filter:bg-background/60 border-b backdrop-blur fixed top-0 left-0 right-0 z-50"
   >
     <div class="mx-auto flex max-w-4xl items-center gap-6 px-6 py-3">
       <div class="flex flex-1 items-center gap-6">

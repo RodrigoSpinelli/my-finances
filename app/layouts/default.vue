@@ -8,7 +8,9 @@ onMounted(async () => preferences.value && getPreferences());
 <template>
   <div>
     <base-header />
-    <slot />
+    <div class="mb-20 mt-14">
+      <slot />
+    </div>
     <base-footer />
   </div>
 </template>
