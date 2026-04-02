@@ -48,21 +48,17 @@ const percent = new Intl.NumberFormat("pt-BR", {
 });
 
 /** Opções fixas do seletor (temporário). */
-const props = defineProps<{
-  month: string;
+const { pending, data } = defineProps<{
+  pending: boolean;
+  data: MonthFlowResponse | null;
 }>();
 
-const { data, pending, status } = await useFetch<MonthFlowResponse>(
-  "/api/transactions/month-flow",
-  {
-    query: computed(() => ({ month: props.month })),
-  },
-);
+
 
 /** Apenas duas fatias: entradas e saídas no mês. */
 const chartModel = computed(() => {
-  const income = Math.abs(data.value?.income_total ?? 0);
-  const expense = Math.abs(data.value?.expense_total ?? 0);
+  const income = Math.abs(data?.income_total ?? 0);
+  const expense = Math.abs(data?.expense_total ?? 0);
 
   const chartConfig: ChartConfig = {
     [SLICE_INCOME]: {

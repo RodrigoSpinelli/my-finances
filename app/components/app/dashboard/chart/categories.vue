@@ -23,11 +23,10 @@ interface CategoryData {
   items: ItemsData[];
 }
 
-const {
-  data: categoriesData,
-  pending: categoriesPending,
-  error: categoriesError,
-} = await useFetch<CategoryData>("/api/categories/top");
+const { pending, data } = defineProps<{
+  pending: boolean;
+  data: CategoryData | null;
+}>();
 </script>
 
 <template>
@@ -40,9 +39,9 @@ const {
     </CardHeader>
     <CardContent class="space-y-4">
       <div
-        v-if="categoriesData?.items && categoriesData?.items.length > 0"
+        v-if="data?.items && data?.items.length > 0"
         class="grid gap-2"
-        v-for="category in categoriesData?.items"
+        v-for="category in data?.items"
         :key="category.category_id"
       >
         <div class="flex items-center justify-between">

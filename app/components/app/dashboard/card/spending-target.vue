@@ -5,33 +5,27 @@ import type { GoalPayload } from "~/interfaces/goal";
 
 const { money } = useCurrencyFormat();
 
-const props = defineProps<{
+const { month, pending, data } = defineProps<{
   month: string;
+  pending: boolean;
+  data: GoalPayload | null;
 }>();
 
 const emit = defineEmits<{
-  (e: "saved"): void;
+  (e: "refresh"): void;
 }>();
 
 const isOpen = ref(false);
 
-const { data, pending, refresh } = await useFetch<GoalPayload>(
-  "/api/monthly-spending-goal",
-  {
-    query: computed(() => ({ month: props.month })),
-    watch: [() => props.month],
-  },
-);
-
 const hasGoal = computed(() => {
-  if (!data.value) return false;
-  return (data.value.goal?.amount ?? 0) > 0;
+  if (!data) return false;
+  return (data.goal?.amount ?? 0) > 0;
 });
 
 const progressPercent = computed(() => {
-  const target = data.value?.goal?.amount ?? 0;
+  const target = data?.goal?.amount ?? 0;
   if (target <= 0) return 0;
-  const spent = data.value?.spent ?? 0;
+  const spent = data?.spent ?? 0;
   return Math.min(100, (spent / target) * 100);
 });
 </script>
@@ -83,7 +77,7 @@ const progressPercent = computed(() => {
       description="Defina quanto deseja gastar no mês selecionado no painel. O progresso usa apenas despesas registradas naquele mês."
       form="setGoals"
       :form-props="{ month }"
-      @submit="refresh"
+      @submit="emit('refresh')"
     />
   </Card>
 </template>
