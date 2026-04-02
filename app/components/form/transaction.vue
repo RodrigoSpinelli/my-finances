@@ -20,6 +20,7 @@ type TransactionApi = Transaction & {
 
 const props = defineProps<{
   id?: string;
+  type?: TransactionType;
 }>();
 
 const emit = defineEmits<{
@@ -53,7 +54,7 @@ const form = reactive<Form>({
   categoryId: undefined,
   date: todayIso(),
   description: "",
-  type: "expense",
+  type: props.type ?? "expense",
 });
 
 const categories = ref<Category[]>([]);
@@ -70,7 +71,11 @@ const categoryOptions = computed(() => {
 async function loadLookups() {
   try {
     const [c] = await Promise.all([
-      $fetch<{ categories: Category[] }>("/api/categories"),
+      $fetch<{ categories: Category[] }>("/api/categories", {
+        params: {
+          type: form.type,
+        },
+      }),
     ]);
     categories.value = c.categories;
   } catch (error) {
@@ -210,8 +215,16 @@ function resetForm() {
   form.type = "expense";
 }
 
+watch(
+  () => form.type,
+  () => {
+    loadLookups();
+    form.categoryId = undefined;
+  },
+  { immediate: true },
+);
+
 onMounted(() => {
-  loadLookups();
   props.id && getData();
 });
 </script>
@@ -219,19 +232,19 @@ onMounted(() => {
 <template>
   <form class="space-y-4" @submit.prevent="submit">
     <div class="grid gap-4 sm:grid-cols-2">
-      <div class="space-y-2">
-        <Label for="tx_type">Tipo</Label>
-        <shared-select
-          id="tx_type"
-          v-model="form.type"
-          placeholder="Tipo"
-          :options="typeOptions"
-        />
-      </div>
+      <shared-select
+        v-if="!props.type"
+        id="tx_type"
+        v-model="form.type"
+        placeholder="Tipo"
+        label="Tipo"
+        :options="typeOptions"
+      />
       <shared-date-input
         id="tx_date"
         v-model="form.date"
         label="Data"
+        :class="{ 'col-span-2': !!type }"
         required
       />
     </div>
@@ -240,18 +253,19 @@ onMounted(() => {
       v-model="form.amount"
       money-br
       icon="lucide:banknote"
-      label="Valor (R$)"
+      label="Valor"
       placeholder="00,00"
       type="text"
       required
     />
     <div class="space-y-2">
-      <Label for="tx_category">Categoria</Label>
+      <Label for="tx_category">Categoria *</Label>
       <shared-select
         id="tx_category"
         v-model="form.categoryId"
-        placeholder="Categoria (opcional)"
+        placeholder="Categoria"
         :options="categoryOptions"
+        required
       />
     </div>
     <div class="space-y-2">
