@@ -45,12 +45,11 @@ const { data: balanceData, pending: balancePending } =
           form="transaction"
           title="Nova despesa"
           description="Registre uma nova despesa"
-          :form-props="{ type: 'expense' }"
         >
           <template #trigger>
-            <Button>
+            <Button size="sm" class="group">
               <Icon name="lucide:plus" />
-              Nova despesa
+              Nova transação
             </Button>
           </template>
         </shared-drawer>
