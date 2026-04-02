@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { PiggyBankIcon } from "lucide-vue-next";
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
 const displayLabel = computed(() => {
-  const meta = user.value?.user_metadata as { display_name?: string } | undefined;
+  const meta = user.value?.user_metadata as
+    | { display_name?: string }
+    | undefined;
   const n = meta?.display_name?.trim();
   return n || user.value?.email || "";
 });
@@ -18,11 +21,14 @@ async function signOut() {
   <nav
     class="bg-background/95 supports-backdrop-filter:bg-background/60 border-b backdrop-blur fixed top-0 left-0 right-0 z-50"
   >
-    <div class="mx-auto flex max-w-4xl items-center gap-6 px-6 py-3">
+    <div class="mx-auto flex max-w-5xl items-center gap-6 px-6 py-3">
+      <PiggyBankIcon class="w-5 h-5" />
       <div class="flex flex-1 items-center gap-6">
+        <!-- Adiciona o ícone do PiggyBank no início do menu -->
+
         <NuxtLink
           to="/"
-          class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+          class="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
           active-class="text-primary"
         >
           Início
@@ -57,7 +63,12 @@ async function signOut() {
         >
           {{ displayLabel }}
         </span>
-        <Button variant="ghost" size="sm" class="text-muted-foreground" @click="signOut">
+        <Button
+          variant="ghost"
+          size="sm"
+          class="text-muted-foreground"
+          @click="signOut"
+        >
           Sair
         </Button>
         <ClientOnly>
