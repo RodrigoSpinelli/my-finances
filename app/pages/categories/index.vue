@@ -18,6 +18,8 @@ definePageMeta({
 
 type CategoryType = Category["type"];
 
+const { start, finish } = useLoadingIndicator();
+
 const { data, refresh, status, pending } = await useFetch<{
   categories: Category[];
 }>("/api/categories");
@@ -32,6 +34,8 @@ const headers: TableHeaders[] = [
 
 const search = ref("");
 const isOpen = ref(false);
+const isOpenAlert = ref(false);
+const categorySelected = ref<Category | null>(null);
 const dialogId = ref<string | undefined>(undefined);
 
 const categories = computed(() => data.value?.categories ?? []);
@@ -44,21 +48,55 @@ const filteredCategories = computed(() => {
   const q = search.value.trim().toLowerCase();
   if (!q) return categories.value;
   return categories.value.filter((c) => {
-    const haystack = [
-      c.name,
-      typeLabel(c.type),
-      c.icon,
-      c.color,
-    ]
+    const haystack = [c.name, typeLabel(c.type), c.icon, c.color]
       .join(" ")
       .toLowerCase();
     return haystack.includes(q);
   });
 });
 
+const deleteCategory = async () => {
+  if (!categorySelected.value)
+    useToast({
+      type: "error",
+      title: "Erro",
+      description: "Categoria não selecionada.",
+    });
+  try {
+    start();
+    await $fetch("/api/categories/" + categorySelected.value?.id, {
+      method: "DELETE",
+    });
+    useToast({
+      type: "success",
+      title: "Sucesso",
+      description: "Categoria excluída com sucesso.",
+    });
+    categorySelected.value = null;
+    isOpenAlert.value = false;
+    refresh();
+  } catch (error) {
+    useToast({
+      type: "error",
+      title: "Erro",
+      description:
+        error instanceof Error ? error.message : "Erro ao deletar categoria",
+    });
+  } finally {
+    finish();
+  }
+};
+
 const openDialog = (id?: string) => {
   dialogId.value = id;
   isOpen.value = true;
+};
+
+const openAlert = (id: string) => {
+  categorySelected.value = categories.value.find((c) => c.id === id) ?? null;
+  if (categorySelected.value) {
+    isOpenAlert.value = true;
+  }
 };
 </script>
 
@@ -97,7 +135,11 @@ const openDialog = (id?: string) => {
     <section class="space-y-4">
       <h2 class="text-lg font-medium">Lista</h2>
 
-      <shared-table :headers="headers" :is-loading="pending" :length="filteredCategories.length">
+      <shared-table
+        :headers="headers"
+        :is-loading="pending"
+        :length="filteredCategories.length"
+      >
         <TableRow v-for="c in filteredCategories" :key="c.id">
           <TableCell class="font-medium">{{ c.name }}</TableCell>
           <TableCell>
@@ -126,13 +168,19 @@ const openDialog = (id?: string) => {
             <div class="flex flex-wrap justify-end gap-2">
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 @click="openDialog(c.id)"
               >
                 <Icon name="lucide:edit" />
               </Button>
-              <Button type="button" variant="destructive" size="sm">
+              <Button
+                type="button"
+                variant="ghost"
+                aria-label="Excluir categoria"
+                size="icon"
+                @click="openAlert(c.id)"
+              >
                 <Icon name="lucide:trash" />
               </Button>
             </div>
@@ -145,8 +193,14 @@ const openDialog = (id?: string) => {
       v-model="isOpen"
       title="Nova categoria"
       form="category"
-      :id="dialogId"
+      :form-props="{ id: dialogId }"
       @submit="refresh"
+    />
+    <shared-dialog-alert
+      v-model="isOpenAlert"
+      :title="`Tem certeza que deseja excluir a categoria ${categorySelected?.name.toUpperCase()}?`"
+      description="Esta ação não pode ser desfeita. A categoria será removida permanentemente."
+      @confirm="deleteCategory"
     />
   </div>
 </template>

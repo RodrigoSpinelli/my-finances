@@ -11,17 +11,13 @@ import {
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { BanknoteArrowUp, BanknoteArrowDown, HandCoins } from "lucide-vue-next";
+import type { MonthFlowResponse } from "~/interfaces/dashboard";
+
 
 const SLICE_INCOME = "income";
 const SLICE_EXPENSE = "expense";
 
 type SliceRow = Record<string, string | number>;
-
-interface MonthFlowResponse {
-  month: string;
-  income_total: number;
-  expense_total: number;
-}
 
 function segmentKey(row: SliceRow): string {
   for (const k of Object.keys(row)) {
@@ -48,21 +44,17 @@ const percent = new Intl.NumberFormat("pt-BR", {
 });
 
 /** Opções fixas do seletor (temporário). */
-const props = defineProps<{
-  month: string;
+const { pending, data } = defineProps<{
+  pending: boolean;
+  data: MonthFlowResponse | null;
 }>();
 
-const { data, pending, status } = await useFetch<MonthFlowResponse>(
-  "/api/transactions/month-flow",
-  {
-    query: computed(() => ({ month: props.month })),
-  },
-);
+
 
 /** Apenas duas fatias: entradas e saídas no mês. */
 const chartModel = computed(() => {
-  const income = Math.abs(data.value?.income_total ?? 0);
-  const expense = Math.abs(data.value?.expense_total ?? 0);
+  const income = Math.abs(data?.income_total ?? 0);
+  const expense = Math.abs(data?.expense_total ?? 0);
 
   const chartConfig: ChartConfig = {
     [SLICE_INCOME]: {

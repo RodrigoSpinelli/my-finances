@@ -18,7 +18,7 @@ watch(
   async (u) => {
     if (u) {
       const path = redirectInfo.pluck();
-      await navigateTo(path || "/");
+      await navigateTo(path || "/dashboard");
     }
   },
   { immediate: true },
@@ -82,7 +82,7 @@ async function onSubmit() {
 
   if (data.session) {
     const path = redirectInfo.pluck();
-    await navigateTo(path || "/");
+    await navigateTo(path || "/dashboard");
     return;
   }
 

@@ -10,22 +10,36 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
+const isOpen = defineModel<boolean>();
+
+defineProps<{
+  title: string;
+  description?: string;
+}>();
+
+defineEmits<{
+  (e: "confirm"): void;
+}>();
 </script>
 
 <template>
-  <AlertDialog>
-    <AlertDialogTrigger>Open</AlertDialogTrigger>
+  <AlertDialog v-model:open="isOpen">
+    <AlertDialogTrigger as-child>
+      <slot />
+    </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-        <AlertDialogDescription>
-          This action cannot be undone. This will permanently delete your
-          account and remove your data from our servers.
-        </AlertDialogDescription>
+        <AlertDialogTitle>{{ title }}</AlertDialogTitle>
+        <AlertDialogDescription v-if="description">{{
+          description
+        }}</AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction>Continue</AlertDialogAction>
+        <AlertDialogCancel @click="isOpen = false">Cancelar</AlertDialogCancel>
+        <AlertDialogAction @click="$emit('confirm')"
+          >Confirmar</AlertDialogAction
+        >
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
