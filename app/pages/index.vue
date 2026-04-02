@@ -70,7 +70,7 @@ const { data: balanceData, pending: balancePending } =
       </div>
     </div>
 
-    <div class="grid grid-cols-8 gap-6">
+    <div class="grid lg:grid-cols-8 gap-6">
       <app-dashboard-card-balance
         :data="balanceData ?? null"
         :pending="balancePending"
