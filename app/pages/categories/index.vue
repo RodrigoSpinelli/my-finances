@@ -193,7 +193,7 @@ const openAlert = (id: string) => {
       v-model="isOpen"
       title="Nova categoria"
       form="category"
-      :id="dialogId"
+      :form-props="{ id: dialogId }"
       @submit="refresh"
     />
     <shared-dialog-alert
