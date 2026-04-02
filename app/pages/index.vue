@@ -70,31 +70,34 @@ const { data: balanceData, pending: balancePending } =
       </div>
     </div>
 
-    <div class="grid lg:grid-cols-8 gap-6">
+    <div class="grid lg:grid-cols-8 sm:grid-cols-4 grid-cols-1 gap-6">
       <app-dashboard-card-balance
         :data="balanceData ?? null"
         :pending="balancePending"
-        class="col-span-2"
+        class="sm:col-span-2"
       />
       <app-dashboard-card-previous-balance
         :data="balanceData ?? null"
         :pending="balancePending"
-        class="col-span-2"
+        class="sm:col-span-2"
       />
 
       <app-dashboard-card-spending-target
         :month="selectedMonth"
-        class="col-span-4"
+        class="lg:col-span-4 sm:col-span-4"
       />
 
-      <app-dashboard-chart-analysis :month="selectedMonth" class="col-span-4" />
+      <app-dashboard-chart-analysis
+        :month="selectedMonth"
+        class="sm:col-span-4"
+      />
       <app-dashboard-chart-transactions
         :month="selectedMonth"
-        class="col-span-2"
+        class="lg:col-span-2 sm:col-span-2"
       />
       <app-dashboard-chart-categories
         :month="selectedMonth"
-        class="col-span-2"
+        class="lg:col-span-2 sm:col-span-2"
       />
     </div>
     <shared-dialog
