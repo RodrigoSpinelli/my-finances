@@ -18,7 +18,7 @@ defineProps<{
   title: string;
   description?: string;
   form: FormComponentKey;
-  id?: string;
+  formProps?: Record<string, unknown>;
 }>();
 
 const handleSubmit = () => {
@@ -42,7 +42,11 @@ const isOpen = defineModel<boolean>();
         }}</DialogDescription>
       </DialogHeader>
       <div class="space-y-4">
-        <component :is="formComponents[form]" :id="id" @submit="handleSubmit" />
+        <component
+          :is="formComponents[form]"
+          v-bind="formProps ?? {}"
+          @submit="handleSubmit"
+        />
       </div>
     </DialogContent>
   </Dialog>
