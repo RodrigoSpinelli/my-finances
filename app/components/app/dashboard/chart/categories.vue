@@ -46,7 +46,10 @@ const {
         :key="category.category_id"
       >
         <div class="flex items-center justify-between">
-          <span>{{ category.name }}</span>
+          <div class="flex items-center gap-2">
+            <Icon :name="category.icon" class="size-4 shrink-0" />
+            <span>{{ category.name }}</span>
+          </div>
           <span>{{ category.percentage }}%</span>
         </div>
         <Progress :model-value="category.percentage" />
