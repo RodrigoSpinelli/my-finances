@@ -15,26 +15,30 @@ interface Option {
 defineProps<{
   options: Option[];
   placeholder: string;
-  id?: string;
+  label?: string;
   disabled?: boolean;
 }>();
 
 const model = defineModel<string>();
+const id = useId();
 </script>
 
 <template>
-  <Select v-model="model" :disabled="disabled">
-    <SelectTrigger class="w-full" :id="id" :disabled="disabled">
-      <SelectValue :placeholder="placeholder" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem
-        v-for="option in options"
-        :key="option.value"
-        :value="option.value"
-      >
-        {{ option.label }}
-      </SelectItem>
-    </SelectContent>
-  </Select>
+  <div class="space-y-2">
+    <Label :for="id">{{ label }}</Label>
+    <Select v-model="model" :disabled="disabled">
+      <SelectTrigger class="w-full" :id="id" :disabled="disabled">
+        <SelectValue :placeholder="placeholder" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem
+          v-for="option in options"
+          :key="option.value"
+          :value="option.value"
+        >
+          {{ option.label }}
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
 </template>

@@ -164,7 +164,7 @@ function onFocus() {
 </script>
 
 <template>
-  <div :class="cn('grid gap-2', props.class)">
+  <div :class="cn('space-y-2', props.class)">
     <Label v-if="label" :for="inputId">
       {{ label }} {{ required ? "*" : "" }}
     </Label>
