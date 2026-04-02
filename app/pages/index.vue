@@ -23,7 +23,7 @@ const MONTH_OPTIONS = [
   { value: "2026-05", label: "Maio de 2026" },
 ] as const;
 
-const selectedMonth = ref<string>(MONTH_OPTIONS[0]!.value);
+const selectedMonth = ref<string>(MONTH_OPTIONS[1]!.value);
 
 const { data: balanceData, pending: balancePending } =
   await useFetch<DashboardBalance>("/api/balance", {
