@@ -17,30 +17,14 @@ import {
   ChartTooltipContent,
   componentToString,
 } from "@/components/ui/chart"
+import type { ExpenseDailyResponse } from "~/interfaces/dashboard";
 
 const SLICE_KEY = "expense"
 
-interface ExpenseDailyRow {
-  date: string
-  amount: number
-}
-
-interface ExpenseDailyResponse {
-  month: string
-  daily: ExpenseDailyRow[]
-  month_total: number
-}
-
-const props = defineProps<{
-  month: string
+const { pending, data } = defineProps<{
+  pending: boolean
+  data: ExpenseDailyResponse | null
 }>()
-
-const { data, pending } = await useFetch<ExpenseDailyResponse>(
-  "/api/transactions/expense-daily",
-  {
-    query: computed(() => ({ month: props.month })),
-  },
-)
 
 const { formatMoney } = useCurrencyFormat()
 
@@ -54,7 +38,7 @@ const chartConfig = {
 type ChartPoint = { date: Date; expense: number }
 
 const chartData = computed<ChartPoint[]>(() => {
-  const rows = data.value?.daily ?? []
+  const rows = data?.daily ?? []
   return rows.map(r => ({
     date: new Date(`${r.date}T12:00:00`),
     expense: r.amount,
@@ -62,10 +46,10 @@ const chartData = computed<ChartPoint[]>(() => {
 })
 
 const monthTotalLabel = computed(() =>
-  formatMoney(data.value?.month_total ?? 0),
+  formatMoney(data?.month_total ?? 0),
 )
 
-const hasExpenses = computed(() => (data.value?.month_total ?? 0) > 0)
+const hasExpenses = computed(() => (data?.month_total ?? 0) > 0)
 
 const crosshairTemplate = componentToString(
   chartConfig,

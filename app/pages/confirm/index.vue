@@ -11,7 +11,7 @@ watch(
   () => {
     if (user.value) {
       const path = redirectInfo.pluck();
-      return navigateTo(path || "/");
+      return navigateTo(path || "/dashboard");
     }
   },
   { immediate: true },
