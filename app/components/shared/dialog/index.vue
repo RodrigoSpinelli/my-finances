@@ -7,6 +7,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useMediaQuery } from "@vueuse/core";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+const isDesktop = useMediaQuery("(min-width: 640px)");
+const Modal = computed(() => ({
+  Root: isDesktop.value ? Dialog : Drawer,
+  Trigger: isDesktop.value ? DialogTrigger : DrawerTrigger,
+  Content: isDesktop.value ? DialogContent : DrawerContent,
+  Header: isDesktop.value ? DialogHeader : DrawerHeader,
+  Title: isDesktop.value ? DialogTitle : DrawerTitle,
+  Description: isDesktop.value ? DialogDescription : DrawerDescription,
+}));
 
 const { formComponents } = useFormComponents();
 
@@ -30,17 +48,17 @@ const isOpen = defineModel<boolean>();
 </script>
 
 <template>
-  <Dialog v-model:open="isOpen">
-    <DialogTrigger as-child>
+  <Modal.Root v-model:open="isOpen">
+    <Modal.Trigger as-child>
       <slot name="trigger" />
-    </DialogTrigger>
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>{{ title }}</DialogTitle>
-        <DialogDescription v-if="description">{{
+    </Modal.Trigger>
+    <Modal.Content class="p-8">
+      <Modal.Header>
+        <Modal.Title>{{ title }}</Modal.Title>
+        <Modal.Description v-if="description">{{
           description
-        }}</DialogDescription>
-      </DialogHeader>
+        }}</Modal.Description>
+      </Modal.Header>
       <div class="space-y-4">
         <component
           :is="formComponents[form]"
@@ -48,6 +66,6 @@ const isOpen = defineModel<boolean>();
           @submit="handleSubmit"
         />
       </div>
-    </DialogContent>
-  </Dialog>
+    </Modal.Content>
+  </Modal.Root>
 </template>
