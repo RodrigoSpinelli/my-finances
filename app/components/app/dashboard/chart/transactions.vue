@@ -11,17 +11,13 @@ import {
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { BanknoteArrowUp, BanknoteArrowDown, HandCoins } from "lucide-vue-next";
+import type { MonthFlowResponse } from "~/interfaces/dashboard";
+
 
 const SLICE_INCOME = "income";
 const SLICE_EXPENSE = "expense";
 
 type SliceRow = Record<string, string | number>;
-
-interface MonthFlowResponse {
-  month: string;
-  income_total: number;
-  expense_total: number;
-}
 
 function segmentKey(row: SliceRow): string {
   for (const k of Object.keys(row)) {

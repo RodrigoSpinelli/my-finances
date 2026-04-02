@@ -17,19 +17,9 @@ import {
   ChartTooltipContent,
   componentToString,
 } from "@/components/ui/chart"
+import type { ExpenseDailyResponse } from "~/interfaces/dashboard";
 
 const SLICE_KEY = "expense"
-
-interface ExpenseDailyRow {
-  date: string;
-  amount: number;
-}
-
-interface ExpenseDailyResponse {
-  month: string;
-  daily: ExpenseDailyRow[];
-  month_total: number;
-}
 
 const { pending, data } = defineProps<{
   pending: boolean

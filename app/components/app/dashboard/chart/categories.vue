@@ -2,26 +2,7 @@
 import type { Database } from "~/types/database.types";
 import { Progress } from "@/components/ui/progress";
 import { TagIcon } from "lucide-vue-next";
-
-type TransactionType = Database["public"]["Enums"]["transaction_type"];
-
-interface ItemsData {
-  category_id: string;
-  name: string;
-  icon: string;
-  type: TransactionType;
-  color: string;
-  color_hex: string;
-  transaction_count: number;
-  total_amount: number;
-  percentage: number;
-}
-
-interface CategoryData {
-  month: string;
-  type: TransactionType | "all";
-  items: ItemsData[];
-}
+import type { CategoryData } from "~/interfaces/dashboard";
 
 const { pending, data } = defineProps<{
   pending: boolean;

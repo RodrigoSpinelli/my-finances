@@ -2,6 +2,11 @@
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { Category } from "~/interfaces/category";
 import type { GoalPayload } from "~/interfaces/goal";
+import type {
+  ExpenseDailyResponse,
+  MonthFlowResponse,
+  CategoryData,
+} from "~/interfaces/dashboard";
 
 const { data, refresh } = await useFetch<{ categories: Category[] }>(
   "/api/categories",
@@ -15,41 +20,6 @@ useHead({
   title: "Dashboard",
 });
 
-interface ExpenseDailyRow {
-  date: string;
-  amount: number;
-}
-
-interface ExpenseDailyResponse {
-  month: string;
-  daily: ExpenseDailyRow[];
-  month_total: number;
-}
-
-interface MonthFlowResponse {
-  month: string;
-  income_total: number;
-  expense_total: number;
-}
-
-interface ItemsData {
-  category_id: string;
-  name: string;
-  icon: string;
-  type: TransactionType;
-  color: string;
-  color_hex: string;
-  transaction_count: number;
-  total_amount: number;
-  percentage: number;
-}
-
-interface CategoryData {
-  month: string;
-  type: TransactionType | "all";
-  items: ItemsData[];
-}
-
 const isOpen = computed(() => (data.value?.categories?.length ?? 0) === 0);
 
 const user = useSupabaseUser();
@@ -62,41 +32,50 @@ const MONTH_OPTIONS = [
 
 const month = ref<string>(MONTH_OPTIONS[1]!.value);
 
-const { data: balanceData, pending: balancePending, refresh: balanceRefresh } =  
-  await useFetch<DashboardBalance>("/api/balance", {
-    query: computed(() => ({ month: month.value })),
-    watch: [month],
-  });
+const {
+  data: balanceData,
+  pending: balancePending,
+  refresh: balanceRefresh,
+} = await useFetch<DashboardBalance>("/api/balance", {
+  query: computed(() => ({ month: month.value })),
+  watch: [month],
+});
 
+const {
+  data: expenseDailyData,
+  pending: expenseDailyPending,
+  refresh: expenseDailyRefresh,
+} = await useFetch<ExpenseDailyResponse>("/api/transactions/expense-daily", {
+  query: computed(() => ({ month: month.value })),
+  watch: [month],
+});
 
+const {
+  data: goalData,
+  pending: goalPending,
+  refresh: goalRefresh,
+} = await useFetch<GoalPayload>("/api/monthly-spending-goal", {
+  query: computed(() => ({ month: month.value })),
+  watch: [month],
+});
 
-const { data: expenseDailyData, pending: expenseDailyPending, refresh: expenseDailyRefresh } =
-  await useFetch<ExpenseDailyResponse>("/api/transactions/expense-daily", {
-    query: computed(() => ({ month: month.value })),
-    watch: [month],
-  });
-
-const { data: goalData, pending: goalPending, refresh: goalRefresh } = await useFetch<GoalPayload>(
-  "/api/monthly-spending-goal",
-  {
-    query: computed(() => ({ month: month.value })),
-    watch: [month],
-  },
-);
-
-const { data: monthFlowData, pending: monthFlowPending, refresh: monthFlowRefresh } =
-  await useFetch<MonthFlowResponse>("/api/transactions/month-flow", {
-    query: computed(() => ({ month: month.value })),
-    watch: [month],
-  });
-
-
+const {
+  data: monthFlowData,
+  pending: monthFlowPending,
+  refresh: monthFlowRefresh,
+} = await useFetch<MonthFlowResponse>("/api/transactions/month-flow", {
+  query: computed(() => ({ month: month.value })),
+  watch: [month],
+});
 
 const {
   data: categoriesData,
   pending: categoriesPending,
   refresh: categoriesRefresh,
-} = await useFetch<CategoryData>("/api/categories/top");
+} = await useFetch<CategoryData>("/api/categories/top", {
+  query: computed(() => ({ month: month.value })),
+  watch: [month],
+});
 
 const getAll = async () => {
   await Promise.all([
