@@ -7,7 +7,7 @@ onMounted(async () => preferences.value && getPreferences());
 
 <template>
   <div>
-    <AppMenu />
+    <base-header />
     <slot />
     <base-footer />
   </div>
