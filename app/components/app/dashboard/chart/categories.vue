@@ -53,7 +53,7 @@ const {
       </div>
       <div
         v-else
-        class="text-muted-foreground flex aspect-square max-h-[250px] flex-col items-center justify-center gap-1 px-4 text-center text-sm"
+        class="text-muted-foreground flex aspect-square max-h-[250px] mx-auto flex-col items-center justify-center gap-1 px-4 text-center text-sm"
       >
         <p>Nenhuma gasto por categoria encontrada.</p>
         <p class="text-xs">
