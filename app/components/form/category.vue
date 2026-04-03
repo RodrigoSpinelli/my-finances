@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { DialogFooter } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Category } from "~/interfaces/category";
 import type { Tables } from "~/types/database.types";
 
@@ -34,6 +32,16 @@ const form = reactive<Form>({
 
 const icons = ref<Tables<"icons">[]>([]);
 const iconsPending = ref(true);
+const iconPickerOpen = ref(false);
+
+const selectedIcon = computed(() =>
+  icons.value.find(i => i.id === form.iconId),
+);
+
+function pickIcon(id: string) {
+  form.iconId = id;
+  iconPickerOpen.value = false;
+}
 
 const colors = [
   { name: "red", bg: "bg-red-600", ring: "ring-red-500", border: "border-red-500" },
@@ -202,26 +210,73 @@ const resetForm = () => {
     </div>
     <div class="space-y-2">
       <Label for="category_icon">Ícone</Label>
-      <Select
-        v-model="form.iconId"
-        :disabled="iconsPending || icons.length === 0"
-      >
-        <SelectTrigger id="category_icon" class="w-full">
-          <SelectValue placeholder="Selecione um ícone" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem
-            v-for="ic in icons"
-            :key="ic.id"
-            :value="ic.id"
+      <Popover v-model:open="iconPickerOpen">
+        <PopoverTrigger as-child>
+          <Button
+            id="category_icon"
+            type="button"
+            variant="outline"
+            role="combobox"
+            :aria-expanded="iconPickerOpen"
+            aria-haspopup="dialog"
+            aria-controls="category-icon-grid"
+            class="h-11 w-full justify-between gap-2 px-3 font-normal"
+            :disabled="iconsPending || icons.length === 0"
           >
-            <span class="flex items-center gap-2">
-              <Icon :name="ic.name" class="size-4 shrink-0" />
-              <span class="truncate font-mono text-xs">{{ ic.name }}</span>
+            <span class="flex min-w-0 items-center gap-2">
+              <Icon
+                v-if="selectedIcon"
+                :name="selectedIcon.name"
+                class="size-5 shrink-0"
+              />
+              <span
+                class="truncate text-left text-sm"
+                :class="
+                  selectedIcon ? 'text-foreground' : 'text-muted-foreground'
+                "
+              >
+                {{
+                  selectedIcon?.name ?? "Selecione um ícone"
+                }}
+              </span>
             </span>
-          </SelectItem>
-        </SelectContent>
-      </Select>
+            <Icon
+              name="lucide:chevrons-up-down"
+              class="text-muted-foreground size-4 shrink-0 opacity-60"
+            />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          id="category-icon-grid"
+          class="w-[min(calc(100vw-2rem),20rem)] p-3 sm:w-80"
+          align="start"
+          :side-offset="4"
+        >
+          <p class="text-muted-foreground mb-2 text-xs font-medium">
+            Escolha um ícone
+          </p>
+          <div
+            class="max-h-[min(50vh,280px)] overflow-y-auto overflow-x-hidden pr-0.5"
+          >
+            <div class="grid grid-cols-6 gap-1.5">
+              <Button
+                v-for="ic in icons"
+                :key="ic.id"
+                type="button"
+                :variant="form.iconId === ic.id ? 'secondary' : 'outline'"
+                size="icon"
+                class="size-9 shrink-0"
+                :title="ic.name"
+                :aria-label="`Ícone ${ic.name}`"
+                :aria-pressed="form.iconId === ic.id"
+                @click="pickIcon(ic.id)"
+              >
+                <Icon :name="ic.name" class="size-4" />
+              </Button>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
     <div class="max-w-xs space-y-2">
       <Label for="category_color">Cor (opcional)</Label>
