@@ -14,17 +14,68 @@ export type TransactionWithCategory = TxRow & {
   categories: CategoryBrief | null
 }
 
-export async function listTransactionsWithCategories(
+function escapeIlike(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
+type RawCategoryEmbed = Pick<
+  Tables<"categories">,
+  "id" | "name" | "icon_id" | "type" | "color"
+> & {
+  icons: { name: string } | null
+}
+
+type RawTxWithEmbed = TxRow & {
+  categories: RawCategoryEmbed | null
+}
+
+function mapTransactionRow(raw: RawTxWithEmbed): TransactionWithCategory {
+  const { categories: cat, ...t } = raw
+  if (!cat) {
+    return { ...t, categories: null }
+  }
+  const { icons, ...base } = cat
+  return {
+    ...t,
+    categories: {
+      ...base,
+      icon: icons?.name ?? "lucide:tag",
+    },
+  }
+}
+
+export type ListTransactionsPaginatedResult = {
+  transactions: TransactionWithCategory[]
+  total: number
+}
+
+export async function listTransactionsWithCategoriesPaginated(
   event: H3Event,
   userId: string,
-): Promise<TransactionWithCategory[]> {
+  options: { page: number; pageSize: number; q?: string },
+): Promise<ListTransactionsPaginatedResult> {
   const client = await serverSupabaseClient(event)
-  const { data: txs, error: txError } = await client
+  const { page, pageSize, q } = options
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  let qb = client
     .from("transactions")
-    .select("*")
+    .select(
+      "*, categories(id, name, icon_id, type, color, icons(name))",
+      { count: "exact" },
+    )
     .eq("user_id", userId)
     .order("date", { ascending: false })
     .order("created_at", { ascending: false })
+
+  const trimmed = q?.trim().replace(/,/g, " ") ?? ""
+  if (trimmed.length > 0) {
+    const pattern = `%${escapeIlike(trimmed)}%`
+    qb = qb.or(`description.ilike.${pattern},categories.name.ilike.${pattern}`)
+  }
+
+  const { data: rows, error: txError, count } = await qb.range(from, to)
 
   if (txError) {
     throw createError({
@@ -33,47 +84,14 @@ export async function listTransactionsWithCategories(
     })
   }
 
-  const rows = txs ?? []
-  const catIds = [
-    ...new Set(
-      rows
-        .map((t) => t.category_id)
-        .filter((id): id is string => typeof id === "string" && id.length > 0),
-    ),
-  ]
+  const transactions = (rows ?? []).map((row) =>
+    mapTransactionRow(row as RawTxWithEmbed),
+  )
 
-  const categoryById = new Map<string, CategoryBrief>()
-  if (catIds.length > 0) {
-    const { data: cats, error: catError } = await client
-      .from("categories")
-      .select("id, name, icon_id, type, color, icons(name)")
-      .eq("user_id", userId)
-      .in("id", catIds)
-
-    if (catError) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: catError.message,
-      })
-    }
-    for (const raw of cats ?? []) {
-      const row = raw as typeof raw & {
-        icons: { name: string } | null
-      }
-      const { icons, ...base } = row
-      categoryById.set(base.id, {
-        ...base,
-        icon: icons?.name ?? "lucide:tag",
-      })
-    }
+  return {
+    transactions,
+    total: count ?? 0,
   }
-
-  return rows.map((t) => ({
-    ...t,
-    categories: t.category_id
-      ? categoryById.get(t.category_id) ?? null
-      : null,
-  }))
 }
 
 export async function getTransactionWithCategory(
