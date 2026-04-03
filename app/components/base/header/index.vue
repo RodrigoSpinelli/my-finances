@@ -17,6 +17,8 @@ import {
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+const userStore = useUserStore();
+const categoriesStore = useCategoriesStore();
 
 const mobileNavOpen = ref(false);
 const userMenuOpen = ref(false);
@@ -48,6 +50,8 @@ const userEmail = computed(() => user.value?.email ?? "");
 async function signOut() {
   userMenuOpen.value = false;
   await supabase.auth.signOut();
+  userStore.reset();
+  categoriesStore.reset();
   await navigateTo("/login");
 }
 
