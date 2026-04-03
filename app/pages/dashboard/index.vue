@@ -24,13 +24,7 @@ const isOpen = computed(() => (data.value?.categories?.length ?? 0) === 0);
 
 const user = useSupabaseUser();
 
-const MONTH_OPTIONS = [
-  { value: "2026-03", label: "Março de 2026" },
-  { value: "2026-04", label: "Abril de 2026" },
-  { value: "2026-05", label: "Maio de 2026" },
-] as const;
-
-const month = ref<string>(MONTH_OPTIONS[1]!.value);
+const { month, monthOptions } = await useDashboardMonthSelect();
 
 const {
   data: balanceData,
@@ -116,7 +110,7 @@ const getAll = async () => {
           aria-label="Mês de referência"
         >
           <NativeSelectOption
-            v-for="opt in MONTH_OPTIONS"
+            v-for="opt in monthOptions"
             :key="opt.value"
             :value="opt.value"
           >
@@ -125,7 +119,6 @@ const getAll = async () => {
         </NativeSelect>
       </div>
     </div>
-
     <div class="grid lg:grid-cols-8 sm:grid-cols-4 grid-cols-1 gap-6">
       <app-dashboard-card-balance
         :data="balanceData ?? null"
