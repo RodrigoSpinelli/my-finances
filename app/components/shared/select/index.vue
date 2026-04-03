@@ -25,7 +25,7 @@ const id = useId();
 
 <template>
   <div class="space-y-2">
-    <Label :for="id">{{ label }}</Label>
+    <Label v-if="label" :for="id">{{ label }}</Label>
     <Select v-model="model" :disabled="disabled">
       <SelectTrigger class="w-full" :id="id" :disabled="disabled">
         <SelectValue :placeholder="placeholder" />

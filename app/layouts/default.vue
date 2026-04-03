@@ -1,8 +1,12 @@
 <script setup lang="ts">
 const { getPreferences } = useUserStore();
-const { preferences } = storeToRefs(useUserStore());
+const { preferences, pending } = storeToRefs(useUserStore());
 
-onMounted(async () => preferences.value && getPreferences());
+onMounted(() => {
+  if (preferences.value === undefined) {
+    getPreferences();
+  }
+});
 </script>
 
 <template>

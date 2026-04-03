@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<{
     name?: string
     type?: TransactionType
-    color?: string | null
+    color_id?: string | null
     icon_id?: string | null
   }>(event)
 
@@ -65,24 +65,47 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const colorId =
+    typeof body.color_id === "string" ? body.color_id.trim() : ""
+  if (!colorId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "color_id é obrigatório",
+    })
+  }
+
+  const { data: colorRow, error: colorErr } = await client
+    .from("colors")
+    .select("id")
+    .eq("id", colorId)
+    .maybeSingle()
+
+  if (colorErr) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: colorErr.message,
+    })
+  }
+
+  if (!colorRow) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Cor inválida",
+    })
+  }
+
   const payload: TablesInsert<"categories"> = {
     name,
     type,
     icon_id: iconId,
+    color_id: colorId,
     user_id: userId,
-  }
-
-  if (typeof body.color === "string") {
-    const c = body.color.trim()
-    if (c) {
-      payload.color = c
-    }
   }
 
   const { data, error } = await client
     .from("categories")
     .insert(payload)
-    .select("*, icons(name)")
+    .select("*, icons(name), colors(name)")
     .single()
 
   if (error) {

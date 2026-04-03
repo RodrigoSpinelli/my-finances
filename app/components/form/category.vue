@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { DialogFooter } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Category } from "~/interfaces/category";
 import type { Tables } from "~/types/database.types";
 
@@ -14,10 +12,12 @@ const props = defineProps<{
   id?: string;
 }>();
 
+type ColorRow = Tables<"colors"> & { swatch_hex: string | null };
+
 interface Form {
   name: string;
   type: Category["type"];
-  color: string;
+  colorId: string;
   iconId: string;
 }
 
@@ -28,21 +28,36 @@ const emit = defineEmits<{
 const form = reactive<Form>({
   name: "",
   type: "expense",
-  color: "",
+  colorId: "",
   iconId: "",
 });
 
 const icons = ref<Tables<"icons">[]>([]);
 const iconsPending = ref(true);
+const iconPickerOpen = ref(false);
+const isLoading = ref(false);
 
-const colors = [
-  { name: "red", bg: "bg-red-600", ring: "ring-red-500", border: "border-red-500" },
-  { name: "yellow", bg: "bg-yellow-400", ring: "ring-yellow-400", border: "border-yellow-400" },
-  { name: "green", bg: "bg-green-400", ring: "ring-green-500", border: "border-green-500" },
-  { name: "cyan", bg: "bg-cyan-500", ring: "ring-cyan-500", border: "border-cyan-500" },
-  { name: "blue", bg: "bg-blue-500", ring: "ring-blue-500", border: "border-blue-500" },
-  { name: "purple", bg: "bg-purple-500", ring: "ring-purple-500", border: "border-purple-500" },
-];
+const colors = ref<ColorRow[]>([]);
+const colorsPending = ref(true);
+const colorPickerOpen = ref(false);
+
+const selectedIcon = computed(() =>
+  icons.value.find((i) => i.id === form.iconId),
+);
+
+const selectedColor = computed(() =>
+  colors.value.find((c) => c.id === form.colorId),
+);
+
+function pickIcon(id: string) {
+  form.iconId = id;
+  iconPickerOpen.value = false;
+}
+
+function pickColor(id: string) {
+  form.colorId = id;
+  colorPickerOpen.value = false;
+}
 
 const typeOptions = [
   { label: "Receita", value: "income" },
@@ -70,6 +85,27 @@ async function loadIcons() {
   }
 }
 
+async function loadColors() {
+  colorsPending.value = true;
+  try {
+    const { colors: list } = await $fetch<{ colors: ColorRow[] }>(
+      "/api/colors",
+    );
+    colors.value = list;
+    if (!props.id && list[0] && !form.colorId) {
+      form.colorId = list[0].id;
+    }
+  } catch {
+    useToast({
+      type: "error",
+      title: "Erro!",
+      description: "Não foi possível carregar as cores",
+    });
+  } finally {
+    colorsPending.value = false;
+  }
+}
+
 async function syncFormToProps() {
   if (props.id) {
     await getData();
@@ -79,22 +115,25 @@ async function syncFormToProps() {
 }
 
 onMounted(async () => {
-  await loadIcons();
+  await Promise.all([loadIcons(), loadColors()]);
   await syncFormToProps();
 });
 
 watch(
   () => props.id,
   async () => {
-    if (!icons.value.length) {
-      await loadIcons();
-    }
+    await Promise.all([
+      icons.value.length ? Promise.resolve() : loadIcons(),
+      colors.value.length ? Promise.resolve() : loadColors(),
+    ]);
     await syncFormToProps();
   },
 );
 
-const submit = () => {
-  props.id ? update() : create();
+const submit = async () => {
+  isLoading.value = true;
+  props.id ? await update() : await create();
+  isLoading.value = false;
 };
 
 const create = async () => {
@@ -104,7 +143,7 @@ const create = async () => {
       body: {
         name: form.name,
         type: form.type,
-        color: form.color || null,
+        color_id: form.colorId,
         icon_id: form.iconId,
       },
     });
@@ -132,7 +171,7 @@ const update = async () => {
       body: {
         name: form.name,
         type: form.type,
-        color: form.color,
+        color_id: form.colorId,
         icon_id: form.iconId,
       },
     });
@@ -161,7 +200,7 @@ const getData = async () => {
     );
     form.name = category.name;
     form.type = category.type;
-    form.color = category.color ?? "";
+    form.colorId = category.color_id;
     form.iconId = category.icon_id;
   } catch (error) {
     useToast({
@@ -176,7 +215,7 @@ const getData = async () => {
 const resetForm = () => {
   form.name = "";
   form.type = "expense";
-  form.color = "";
+  form.colorId = colors.value[0]?.id ?? "";
   form.iconId = icons.value[0]?.id ?? "";
 };
 </script>
@@ -200,50 +239,164 @@ const resetForm = () => {
         :options="typeOptions"
       />
     </div>
-    <div class="space-y-2">
-      <Label for="category_icon">Ícone</Label>
-      <Select
-        v-model="form.iconId"
-        :disabled="iconsPending || icons.length === 0"
-      >
-        <SelectTrigger id="category_icon" class="w-full">
-          <SelectValue placeholder="Selecione um ícone" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem
-            v-for="ic in icons"
-            :key="ic.id"
-            :value="ic.id"
-          >
-            <span class="flex items-center gap-2">
-              <Icon :name="ic.name" class="size-4 shrink-0" />
-              <span class="truncate font-mono text-xs">{{ ic.name }}</span>
-            </span>
-          </SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-    <div class="max-w-xs space-y-2">
-      <Label for="category_color">Cor (opcional)</Label>
-      <div id="category_color" class="grid grid-cols-6 gap-2">
-        <template v-for="color in colors" :key="color.name">
-          <button
-            type="button"
-            :class="[
-              'flex size-8 items-center justify-center rounded-full border transition focus:outline-none focus:ring-2',
-              color.bg,
-              form.color === color.name
-                ? [color.ring, color.border, 'ring-2']
-                : 'hover:border-primary',
-            ]"
-            :aria-label="`Selecionar cor ${color.name}`"
-            @click="form.color = color.name"
-          >
-            <span v-if="form.color === color.name" class="text-white text-sm"
-              >&#10003;</span
+    <div class="grid grid-cols-2 gap-2">
+      <div class="space-y-2">
+        <Label for="category_icon">Ícone</Label>
+        <Popover v-model:open="iconPickerOpen">
+          <PopoverTrigger as-child>
+            <Button
+              id="category_icon"
+              type="button"
+              variant="outline"
+              role="combobox"
+              :aria-expanded="iconPickerOpen"
+              aria-haspopup="dialog"
+              aria-controls="category-icon-grid"
+              class="h-11 w-full justify-between gap-2 px-3 font-normal"
+              :disabled="iconsPending || icons.length === 0"
             >
-          </button>
-        </template>
+              <span class="flex min-w-0 items-center gap-2">
+                <Icon
+                  v-if="selectedIcon"
+                  :name="selectedIcon.name"
+                  class="size-5 shrink-0"
+                />
+                <span
+                  class="truncate text-left text-sm"
+                  :class="
+                    selectedIcon ? 'text-foreground' : 'text-muted-foreground'
+                  "
+                >
+                  {{ selectedIcon?.name ?? "Selecione um ícone" }}
+                </span>
+              </span>
+              <Icon
+                name="lucide:chevrons-up-down"
+                class="text-muted-foreground size-4 shrink-0 opacity-60"
+              />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            id="category-icon-grid"
+            class="w-[min(calc(100vw-2rem),20rem)] p-3 sm:w-80"
+            align="start"
+            :side-offset="4"
+          >
+            <p class="text-muted-foreground mb-2 text-xs font-medium">
+              Escolha um ícone
+            </p>
+            <div
+              class="max-h-[min(50vh,280px)] overflow-y-auto overflow-x-hidden pr-0.5"
+            >
+              <div class="grid grid-cols-6 gap-1.5">
+                <Button
+                  v-for="ic in icons"
+                  :key="ic.id"
+                  type="button"
+                  :variant="form.iconId === ic.id ? 'secondary' : 'outline'"
+                  size="icon"
+                  class="size-9 shrink-0"
+                  :title="ic.name"
+                  :aria-label="`Ícone ${ic.name}`"
+                  :aria-pressed="form.iconId === ic.id"
+                  @click="pickIcon(ic.id)"
+                >
+                  <Icon :name="ic.name" class="size-4" />
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+      <div class="space-y-2">
+        <Label for="category_color">Cor</Label>
+        <Popover v-model:open="colorPickerOpen">
+          <PopoverTrigger as-child>
+            <Button
+              id="category_color"
+              type="button"
+              variant="outline"
+              role="combobox"
+              :aria-expanded="colorPickerOpen"
+              aria-haspopup="dialog"
+              aria-controls="category-color-grid"
+              class="h-11 w-full justify-between gap-2 px-3 font-normal"
+              :disabled="colorsPending || colors.length === 0"
+              :aria-label="
+                selectedColor
+                  ? `Cor da categoria (tom ${selectedColor.name}). Abrir para alterar`
+                  : 'Selecionar cor da categoria'
+              "
+            >
+              <span class="flex min-w-0 items-center gap-2">
+                <span
+                  class="size-5 shrink-0 rounded-full border border-black/15 ring-1 ring-black/5 dark:border-white/20 dark:ring-white/10"
+                  :style="
+                    selectedColor?.swatch_hex
+                      ? { backgroundColor: selectedColor.swatch_hex }
+                      : undefined
+                  "
+                  :class="!selectedColor?.swatch_hex && 'bg-muted'"
+                  aria-hidden="true"
+                />
+                <span
+                  class="truncate text-left text-sm"
+                  :class="
+                    selectedColor ? 'text-foreground' : 'text-muted-foreground'
+                  "
+                >
+                  {{ selectedColor ? "Selecionada" : "Selecione uma cor" }}
+                </span>
+              </span>
+              <Icon
+                name="lucide:chevrons-up-down"
+                class="text-muted-foreground size-4 shrink-0 opacity-60"
+              />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            id="category-color-grid"
+            class="w-[min(calc(100vw-2rem),20rem)] p-3 sm:w-80"
+            align="start"
+            :side-offset="4"
+          >
+            <p class="text-muted-foreground mb-2 text-xs font-medium">
+              Escolha uma cor
+            </p>
+            <div
+              class="max-h-[min(50vh,280px)] overflow-y-auto overflow-x-hidden pr-0.5"
+            >
+              <div class="grid grid-cols-6 gap-2 p-2">
+                <button
+                  v-for="c in colors"
+                  :key="c.id"
+                  type="button"
+                  :style="
+                    c.swatch_hex ? { backgroundColor: c.swatch_hex } : undefined
+                  "
+                  :class="[
+                    'flex size-9 items-center justify-center rounded-full border transition focus:outline-none focus:ring-2 focus:ring-ring',
+                    !c.swatch_hex && 'bg-muted',
+                    form.colorId === c.id
+                      ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                      : 'border-black/10 hover:border-primary dark:border-white/15',
+                  ]"
+                  :aria-label="`Cor ${c.name}`"
+                  :aria-pressed="form.colorId === c.id"
+                  :title="c.name"
+                  @click="pickColor(c.id)"
+                >
+                  <span
+                    v-if="form.colorId === c.id"
+                    class="text-[10px] font-bold text-white drop-shadow-sm"
+                  >
+                    &#10003;
+                  </span>
+                </button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
     <DialogFooter class="grid gap-2 lg:grid-cols-2">
@@ -252,11 +405,15 @@ const resetForm = () => {
       </DialogClose>
       <Button
         type="submit"
-        :disabled="
-          iconsPending || !form.iconId || icons.length === 0
-        "
+        :disabled="isLoading"
       >
-        Salvar
+        <Icon
+          v-if="isLoading"
+          name="lucide:loader-circle"
+          class="size-4 animate-spin"
+          :class="{ 'animate-spin': isLoading }"
+        />
+        {{ isLoading ? "Salvando..." : "Salvar" }}
       </Button>
     </DialogFooter>
   </form>

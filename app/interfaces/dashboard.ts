@@ -20,7 +20,7 @@ export interface ItemsData {
   name: string;
   icon: string;
   type: TransactionType;
-  color: string;
+  color: string | null;
   color_hex: string;
   transaction_count: number;
   total_amount: number;
