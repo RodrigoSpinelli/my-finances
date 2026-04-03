@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient(event)
   let q = client
     .from("categories")
-    .select("*, icons(name)")
+    .select("*, icons(name), colors(name)")
     .eq("user_id", userId)
 
   if (typeFilter !== undefined) {

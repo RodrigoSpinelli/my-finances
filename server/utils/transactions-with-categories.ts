@@ -5,9 +5,11 @@ import type { Tables } from "~/types/database.types"
 type TxRow = Tables<"transactions">
 type CategoryBrief = Pick<
   Tables<"categories">,
-  "id" | "name" | "icon_id" | "type" | "color"
+  "id" | "name" | "icon_id" | "type" | "color_id"
 > & {
   icon: string
+  /** Token Tailwind (`colors.name`). */
+  color: string | null
 }
 
 export type TransactionWithCategory = TxRow & {
@@ -16,9 +18,10 @@ export type TransactionWithCategory = TxRow & {
 
 type RawCategoryEmbed = Pick<
   Tables<"categories">,
-  "id" | "name" | "icon_id" | "type" | "color"
+  "id" | "name" | "icon_id" | "type" | "color_id"
 > & {
   icons: { name: string } | null
+  colors: { name: string } | null
 }
 
 type RawTxWithEmbed = TxRow & {
@@ -30,12 +33,13 @@ function mapTransactionRow(raw: RawTxWithEmbed): TransactionWithCategory {
   if (!cat) {
     return { ...t, categories: null }
   }
-  const { icons, ...base } = cat
+  const { icons, colors, ...base } = cat
   return {
     ...t,
     categories: {
       ...base,
       icon: icons?.name ?? "lucide:tag",
+      color: colors?.name ?? null,
     },
   }
 }
@@ -64,7 +68,7 @@ export async function listTransactionsWithCategoriesPaginated(
   let qb = client
     .from("transactions")
     .select(
-      "*, categories(id, name, icon_id, type, color, icons(name))",
+      "*, categories(id, name, icon_id, type, color_id, icons(name), colors(name))",
       { count: "exact" },
     )
     .eq("user_id", userId)
@@ -131,7 +135,7 @@ export async function getTransactionWithCategory(
   if (t.category_id) {
     const { data: catRow, error: catError } = await client
       .from("categories")
-      .select("id, name, icon_id, type, color, icons(name)")
+      .select("id, name, icon_id, type, color_id, icons(name), colors(name)")
       .eq("id", t.category_id)
       .eq("user_id", userId)
       .maybeSingle()
@@ -145,11 +149,13 @@ export async function getTransactionWithCategory(
     if (catRow) {
       const row = catRow as typeof catRow & {
         icons: { name: string } | null
+        colors: { name: string } | null
       }
-      const { icons, ...base } = row
+      const { icons, colors, ...base } = row
       categories = {
         ...base,
         icon: icons?.name ?? "lucide:tag",
+        color: colors?.name ?? null,
       }
     }
   }

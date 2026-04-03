@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<{
     name?: string
     type?: TransactionType
-    color?: string | null
+    color_id?: string | null
     icon_id?: string | null
   }>(event)
 
@@ -55,9 +55,15 @@ export default defineEventHandler(async (event) => {
     patch.icon_id = v
   }
 
-  if (body.color !== undefined) {
-    const c = typeof body.color === "string" ? body.color.trim() : ""
-    patch.color = c
+  if (body.color_id !== undefined) {
+    const v = typeof body.color_id === "string" ? body.color_id.trim() : ""
+    if (!v) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "color_id não pode ser vazio",
+      })
+    }
+    patch.color_id = v
   }
 
   if (Object.keys(patch).length === 0) {
@@ -92,12 +98,34 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  if (patch.color_id) {
+    const { data: colorRow, error: colorErr } = await client
+      .from("colors")
+      .select("id")
+      .eq("id", patch.color_id)
+      .maybeSingle()
+
+    if (colorErr) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: colorErr.message,
+      })
+    }
+
+    if (!colorRow) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Cor inválida",
+      })
+    }
+  }
+
   const { data, error } = await client
     .from("categories")
     .update(patch)
     .eq("id", id)
     .eq("user_id", userId)
-    .select("*, icons(name)")
+    .select("*, icons(name), colors(name)")
     .maybeSingle()
 
   if (error) {

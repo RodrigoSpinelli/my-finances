@@ -98,6 +98,15 @@ export function isColorName(value: string): value is ColorName {
   return (COLOR_NAMES as readonly string[]).includes(value)
 }
 
+/** Hex para swatch em `style` (evita classes dinâmicas que o Tailwind não inclui no bundle). */
+export function colorSwatchHex(
+  name: string | null | undefined,
+): string | null {
+  if (!name || !isColorName(name))
+    return null
+  return COLOR_HEX_600[name]
+}
+
 /** Classe da bolinha: `bg-{nome}-600` quando o nome é válido */
 export function colorSwatchBgClass(
   name: string | null | undefined,
