@@ -3,6 +3,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import type { Category } from "~/interfaces/category";
 import type { Tables } from "~/types/database.types";
 import type { TableHeaders } from "~/interfaces/table";
+import type { DateValue } from '@internationalized/date'
 
 useHead({
   title: "Transações",
@@ -27,18 +28,46 @@ const { start, finish } = useLoadingIndicator();
 
 const PAGE_SIZE = 5;
 const page = ref(1);
-const search = ref("");
-const searchDebounced = ref("");
-let searchDebounce: ReturnType<typeof setTimeout> | undefined;
-
-watch(search, (v) => {
-  if (searchDebounce) clearTimeout(searchDebounce);
-  searchDebounce = setTimeout(() => {
-    searchDebounced.value = v.trim();
-  }, 300);
+const filterResetKey = ref(0);
+const filter = ref<{
+  date?: DateValue | undefined;
+  type?: string;
+  categoryId?: string;
+}>({
+  date: undefined,
 });
 
-watch(searchDebounced, () => {
+const filterDateModel = computed({
+  get: () => filter.value.date as DateValue | undefined,
+  set: (v: DateValue | undefined) => {
+    filter.value.date = v;
+  },
+});
+
+const typeOptions = [
+  { label: "Receita", value: "income" },
+  { label: "Despesa", value: "expense" },
+];
+
+const { data: categoriesData } = await useFetch<{ categories: Category[] }>(
+  "/api/categories",
+);
+
+const categoryOptions = computed(() =>
+  (categoriesData.value?.categories ?? []).map((c) => ({
+    label: c.name,
+    value: c.id,
+  })),
+);
+
+/** Chave estável para o useFetch reagir a mudanças nos filtros. */
+const filterQueryKey = computed(() => ({
+  date: filter.value.date?.toString() ?? "",
+  type: filter.value.type ?? "",
+  categoryId: filter.value.categoryId ?? "",
+}));
+
+watch(filterQueryKey, () => {
   page.value = 1;
 });
 
@@ -48,13 +77,23 @@ const { data, refresh, status, pending } = await useFetch<{
   page: number;
   pageSize: number;
 }>("/api/transactions", {
-  query: computed(() => ({
-    page: page.value,
-    pageSize: PAGE_SIZE,
-    ...(searchDebounced.value ? { q: searchDebounced.value } : {}),
-  })),
-  watch: [page, searchDebounced],
+  query: computed(() => {
+    return {
+      page: page.value,
+      pageSize: PAGE_SIZE,
+      ...(filter.value.type ? { type: filter.value.type } : {}),
+      ...(filter.value.date ? { date: filter.value.date.toString() } : {}),
+      ...(filter.value.categoryId ? { categoryId: filter.value.categoryId } : {}),
+    };
+  }),
+  watch: [page, filterQueryKey],
 });
+
+function clearFilters() {
+  filter.value = {};
+  page.value = 1;
+  filterResetKey.value += 1;
+}
 
 const headers: TableHeaders[] = [
   { label: "Data" },
@@ -168,24 +207,45 @@ async function afterTransactionSave() {
     <div
       class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
     >
-      <shared-input
-        v-model="search"
-        placeholder="Pesquisar transações"
-        type="search"
-        icon="lucide:search"
-        class="w-full max-w-xs"
-      />
+      <div
+        :key="filterResetKey"
+        class="flex flex-1 flex-col gap-2 sm:max-w-3xl sm:flex-row sm:items-end"
+      >
+        <shared-calendar
+          placeholder="Selecione uma data"
+          class="w-full"
+          v-model="filter.date as DateValue | undefined"
+        />
+        <shared-select
+          :options="typeOptions"
+          placeholder="Selecione um tipo"
+          class="w-full"
+          v-model="filter.type"
+        />
+        <shared-select
+          :options="categoryOptions"
+          placeholder="Selecione uma categoria"
+          class="w-full"
+          v-model="filter.categoryId"
+        />
+      </div>
       <div class="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          title="Limpar filtros"
+          @click="clearFilters"
+        >
+          <Icon name="lucide:filter-x" />
+        </Button>
         <Button type="button" variant="outline" @click="refresh">
           <Icon
             name="lucide:refresh-cw"
             :class="{ 'animate-spin': status === 'pending' }"
           />
-          {{ status === "pending" ? "Carregando..." : "Atualizar" }}
         </Button>
         <Button type="button" variant="default" @click="openDialog()">
           <Icon name="lucide:plus" />
-          Nova transação
         </Button>
       </div>
     </div>

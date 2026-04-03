@@ -14,10 +14,6 @@ export type TransactionWithCategory = TxRow & {
   categories: CategoryBrief | null
 }
 
-function escapeIlike(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
-}
-
 type RawCategoryEmbed = Pick<
   Tables<"categories">,
   "id" | "name" | "icon_id" | "type" | "color"
@@ -49,13 +45,19 @@ export type ListTransactionsPaginatedResult = {
   total: number
 }
 
+export type TransactionListFilters = {
+  date?: string
+  type?: Tables<"transactions">["type"]
+  categoryId?: string
+}
+
 export async function listTransactionsWithCategoriesPaginated(
   event: H3Event,
   userId: string,
-  options: { page: number; pageSize: number; q?: string },
+  options: { page: number; pageSize: number; filters?: TransactionListFilters },
 ): Promise<ListTransactionsPaginatedResult> {
   const client = await serverSupabaseClient(event)
-  const { page, pageSize, q } = options
+  const { page, pageSize, filters } = options
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
@@ -69,10 +71,14 @@ export async function listTransactionsWithCategoriesPaginated(
     .order("date", { ascending: false })
     .order("created_at", { ascending: false })
 
-  const trimmed = q?.trim().replace(/,/g, " ") ?? ""
-  if (trimmed.length > 0) {
-    const pattern = `%${escapeIlike(trimmed)}%`
-    qb = qb.or(`description.ilike.${pattern},categories.name.ilike.${pattern}`)
+  if (filters?.date) {
+    qb = qb.eq("date", filters.date)
+  }
+  if (filters?.type) {
+    qb = qb.eq("type", filters.type)
+  }
+  if (filters?.categoryId) {
+    qb = qb.eq("category_id", filters.categoryId)
   }
 
   const { data: rows, error: txError, count } = await qb.range(from, to)
