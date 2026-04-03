@@ -11,6 +11,8 @@ const props = withDefaults(defineProps<{
   nameKey?: string
   labelKey?: string
   labelFormatter?: (d: number | Date) => string
+  /** When set (e.g. currency), used instead of plain `toLocaleString` for numeric payload values. */
+  valueFormatter?: (value: number) => string
   payload?: Record<string, any>
   config?: ChartConfig
   class?: HTMLAttributes["class"]
@@ -44,12 +46,27 @@ const tooltipLabel = computed(() => {
   }
   return props.labelKey ? props.config[props.labelKey]?.label || props.payload[props.labelKey] : props.x
 })
+
+function formatPayloadValue(value: unknown): string {
+  const n = typeof value === "number" ? value : Number(value)
+  if (Number.isFinite(n) && props.valueFormatter)
+    return props.valueFormatter(n)
+  if (typeof value === "number" && Number.isFinite(value))
+    return value.toLocaleString("pt-BR")
+  return String(value ?? "")
+}
+
+function showPayloadAmount(value: unknown): boolean {
+  if (typeof value === "number")
+    return Number.isFinite(value)
+  return value != null && value !== ""
+}
 </script>
 
 <template>
   <div
     :class="cn(
-      'border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+      'border-border/50 bg-background grid min-w-32 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
       props.class,
     )"
   >
@@ -85,8 +102,13 @@ const tooltipLabel = computed(() => {
             />
           </template>
 
-          <div :class="cn('flex flex-1 justify-between leading-none', nestLabel ? 'items-end' : 'items-center')">
-            <div class="grid gap-1.5">
+          <div
+            :class="cn(
+              'flex min-w-0 flex-1 flex-wrap justify-between gap-x-2 gap-y-1 leading-none',
+              nestLabel ? 'items-end' : 'items-center',
+            )"
+          >
+            <div class="grid min-w-0 gap-1.5">
               <div v-if="nestLabel" class="font-medium">
                 {{ tooltipLabel }}
               </div>
@@ -94,8 +116,11 @@ const tooltipLabel = computed(() => {
                 {{ itemConfig?.label || value }}
               </span>
             </div>
-            <span v-if="value" class="text-foreground font-mono font-medium tabular-nums">
-              {{ value.toLocaleString() }}
+            <span
+              v-if="showPayloadAmount(value)"
+              class="text-foreground shrink-0 font-mono font-medium tabular-nums"
+            >
+              {{ formatPayloadValue(value) }}
             </span>
           </div>
         </div>

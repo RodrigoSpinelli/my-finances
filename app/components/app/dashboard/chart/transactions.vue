@@ -49,6 +49,8 @@ const { pending, data } = defineProps<{
   data: MonthFlowResponse | null;
 }>();
 
+const { formatMoney } = useCurrencyFormat();
+
 
 
 /** Apenas duas fatias: entradas e saídas no mês. */
@@ -58,11 +60,11 @@ const chartModel = computed(() => {
 
   const chartConfig: ChartConfig = {
     [SLICE_INCOME]: {
-      label: "Entradas ",
+      label: "Entradas",
       color: "var(--primary)",
     },
     [SLICE_EXPENSE]: {
-      label: "Saídas ",
+      label: "Saídas",
       color: "var(--destructive)",
     },
   };
@@ -148,7 +150,10 @@ const hasMovement = computed(() => chartModel.value.chartData.length > 0);
               [Donut.selectors.segment]: componentToString(
                 chartModel.chartConfig,
                 ChartTooltipContent,
-                { hideLabel: true },
+                {
+                  hideLabel: true,
+                  valueFormatter: (n: number) => formatMoney(n),
+                },
               )!,
             }"
           />

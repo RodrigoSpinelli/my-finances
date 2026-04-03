@@ -30,7 +30,7 @@ const { formatMoney } = useCurrencyFormat()
 
 const chartConfig = {
   [SLICE_KEY]: {
-    label: "Gastos no dia",
+    label: "Gastos no dia ",
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig
@@ -61,6 +61,7 @@ const crosshairTemplate = componentToString(
         day: "2-digit",
         month: "short",
       }),
+    valueFormatter: (n: number) => formatMoney(n),
   },
 )
 </script>
