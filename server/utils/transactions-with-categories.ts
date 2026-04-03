@@ -5,26 +5,87 @@ import type { Tables } from "~/types/database.types"
 type TxRow = Tables<"transactions">
 type CategoryBrief = Pick<
   Tables<"categories">,
-  "id" | "name" | "icon_id" | "type" | "color"
+  "id" | "name" | "icon_id" | "type" | "color_id"
 > & {
   icon: string
+  /** Token Tailwind (`colors.name`). */
+  color: string | null
 }
 
 export type TransactionWithCategory = TxRow & {
   categories: CategoryBrief | null
 }
 
-export async function listTransactionsWithCategories(
+type RawCategoryEmbed = Pick<
+  Tables<"categories">,
+  "id" | "name" | "icon_id" | "type" | "color_id"
+> & {
+  icons: { name: string } | null
+  colors: { name: string } | null
+}
+
+type RawTxWithEmbed = TxRow & {
+  categories: RawCategoryEmbed | null
+}
+
+function mapTransactionRow(raw: RawTxWithEmbed): TransactionWithCategory {
+  const { categories: cat, ...t } = raw
+  if (!cat) {
+    return { ...t, categories: null }
+  }
+  const { icons, colors, ...base } = cat
+  return {
+    ...t,
+    categories: {
+      ...base,
+      icon: icons?.name ?? "lucide:tag",
+      color: colors?.name ?? null,
+    },
+  }
+}
+
+export type ListTransactionsPaginatedResult = {
+  transactions: TransactionWithCategory[]
+  total: number
+}
+
+export type TransactionListFilters = {
+  date?: string
+  type?: Tables<"transactions">["type"]
+  categoryId?: string
+}
+
+export async function listTransactionsWithCategoriesPaginated(
   event: H3Event,
   userId: string,
-): Promise<TransactionWithCategory[]> {
+  options: { page: number; pageSize: number; filters?: TransactionListFilters },
+): Promise<ListTransactionsPaginatedResult> {
   const client = await serverSupabaseClient(event)
-  const { data: txs, error: txError } = await client
+  const { page, pageSize, filters } = options
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  let qb = client
     .from("transactions")
-    .select("*")
+    .select(
+      "*, categories(id, name, icon_id, type, color_id, icons(name), colors(name))",
+      { count: "exact" },
+    )
     .eq("user_id", userId)
     .order("date", { ascending: false })
     .order("created_at", { ascending: false })
+
+  if (filters?.date) {
+    qb = qb.eq("date", filters.date)
+  }
+  if (filters?.type) {
+    qb = qb.eq("type", filters.type)
+  }
+  if (filters?.categoryId) {
+    qb = qb.eq("category_id", filters.categoryId)
+  }
+
+  const { data: rows, error: txError, count } = await qb.range(from, to)
 
   if (txError) {
     throw createError({
@@ -33,47 +94,14 @@ export async function listTransactionsWithCategories(
     })
   }
 
-  const rows = txs ?? []
-  const catIds = [
-    ...new Set(
-      rows
-        .map((t) => t.category_id)
-        .filter((id): id is string => typeof id === "string" && id.length > 0),
-    ),
-  ]
+  const transactions = (rows ?? []).map((row) =>
+    mapTransactionRow(row as RawTxWithEmbed),
+  )
 
-  const categoryById = new Map<string, CategoryBrief>()
-  if (catIds.length > 0) {
-    const { data: cats, error: catError } = await client
-      .from("categories")
-      .select("id, name, icon_id, type, color, icons(name)")
-      .eq("user_id", userId)
-      .in("id", catIds)
-
-    if (catError) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: catError.message,
-      })
-    }
-    for (const raw of cats ?? []) {
-      const row = raw as typeof raw & {
-        icons: { name: string } | null
-      }
-      const { icons, ...base } = row
-      categoryById.set(base.id, {
-        ...base,
-        icon: icons?.name ?? "lucide:tag",
-      })
-    }
+  return {
+    transactions,
+    total: count ?? 0,
   }
-
-  return rows.map((t) => ({
-    ...t,
-    categories: t.category_id
-      ? categoryById.get(t.category_id) ?? null
-      : null,
-  }))
 }
 
 export async function getTransactionWithCategory(
@@ -107,7 +135,7 @@ export async function getTransactionWithCategory(
   if (t.category_id) {
     const { data: catRow, error: catError } = await client
       .from("categories")
-      .select("id, name, icon_id, type, color, icons(name)")
+      .select("id, name, icon_id, type, color_id, icons(name), colors(name)")
       .eq("id", t.category_id)
       .eq("user_id", userId)
       .maybeSingle()
@@ -121,11 +149,13 @@ export async function getTransactionWithCategory(
     if (catRow) {
       const row = catRow as typeof catRow & {
         icons: { name: string } | null
+        colors: { name: string } | null
       }
-      const { icons, ...base } = row
+      const { icons, colors, ...base } = row
       categories = {
         ...base,
         icon: icons?.name ?? "lucide:tag",
+        color: colors?.name ?? null,
       }
     }
   }

@@ -13,7 +13,7 @@
     "test:coverage": "vitest --coverage",
     "test:unit": "vitest --project unit",
     "test:nuxt": "vitest --project nuxt",
-    "gen:supabase:types": "pnpm dlx supabase gen types typescript --linked > app/types/database.types.ts"
+    "gen:supabase": "pnpm dlx supabase gen types typescript --linked > app/types/database.types.ts"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.0",

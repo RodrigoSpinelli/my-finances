@@ -41,7 +41,7 @@ export type Database = {
     Tables: {
       categories: {
         Row: {
-          color: string
+          color_id: string
           created_at: string
           icon_id: string
           id: string
@@ -50,7 +50,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          color?: string
+          color_id: string
           created_at?: string
           icon_id: string
           id?: string
@@ -59,7 +59,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          color?: string
+          color_id?: string
           created_at?: string
           icon_id?: string
           id?: string
@@ -69,6 +69,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "categories_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "colors"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "categories_icon_id_fkey"
             columns: ["icon_id"]
             isOneToOne: false
@@ -76,6 +83,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      colors: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       icons: {
         Row: {
@@ -125,7 +150,7 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
-          category_id: string | null
+          category_id: string
           created_at: string
           date: string
           description: string | null
@@ -135,7 +160,7 @@ export type Database = {
         }
         Insert: {
           amount: number
-          category_id?: string | null
+          category_id: string
           created_at?: string
           date: string
           description?: string | null
@@ -145,7 +170,7 @@ export type Database = {
         }
         Update: {
           amount?: number
-          category_id?: string | null
+          category_id?: string
           created_at?: string
           date?: string
           description?: string | null

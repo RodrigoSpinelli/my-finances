@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient(event)
   const { data, error } = await client
     .from("categories")
-    .select("*, icons(name)")
+    .select("*, icons(name), colors(name)")
     .eq("id", id)
     .eq("user_id", userId)
     .maybeSingle()

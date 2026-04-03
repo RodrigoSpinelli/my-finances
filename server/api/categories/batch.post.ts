@@ -7,6 +7,7 @@ type TransactionType = Database["public"]["Enums"]["transaction_type"]
 type CategoryInput = {
   name?: string
   type?: TransactionType
+  /** Token Tailwind igual a `colors.name` no banco (ex.: `red`). */
   color?: string | null
   icon?: string | null
 }
@@ -47,6 +48,21 @@ export default defineEventHandler(async (event) => {
     (iconRows ?? []).map((r) => [r.name, r.id] as const),
   )
 
+  const { data: colorRows, error: colorsErr } = await client
+    .from("colors")
+    .select("id, name")
+
+  if (colorsErr) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: colorsErr.message,
+    })
+  }
+
+  const colorByName = new Map(
+    (colorRows ?? []).map((r) => [r.name, r.id] as const),
+  )
+
   const payloads: TablesInsert<"categories">[] = []
 
   for (let i = 0; i < items.length; i++) {
@@ -77,18 +93,29 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    const token =
+      typeof raw.color === "string" ? raw.color.trim() : ""
+    if (!token) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `categories[${i}]: color é obrigatório (token Tailwind, ex.: red)`,
+      })
+    }
+
+    const colorId = colorByName.get(token)
+    if (!colorId) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `categories[${i}]: cor "${token}" não cadastrada na tabela colors`,
+      })
+    }
+
     const row: TablesInsert<"categories"> = {
       name,
       type,
       icon_id: iconId,
+      color_id: colorId,
       user_id: userId,
-    }
-
-    if (raw.color !== undefined && raw.color !== null) {
-      const c = typeof raw.color === "string" ? raw.color.trim() : ""
-      if (c) {
-        row.color = c
-      }
     }
 
     payloads.push(row)
