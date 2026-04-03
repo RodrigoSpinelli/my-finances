@@ -17,6 +17,9 @@ definePageMeta({
 
 const user = useSupabaseUser();
 
+const { preferences, pending } = storeToRefs(useUserStore());
+const { getPreferences } = useUserStore();
+
 const displayName = computed(() => {
   const meta = user.value?.user_metadata as
     | { display_name?: string }
@@ -27,22 +30,7 @@ const displayName = computed(() => {
 
 const email = computed(() => user.value?.email ?? "—");
 
-const { data, refresh, status, pending } = await useFetch<{
-  preferences: Tables<"user_preferences"> | null;
-}>("/api/user-preferences");
-
 type PreferredCurrency = Tables<"user_preferences">["preferred_currency"];
-
-const currencyLabel = computed(() => {
-  const cur = data.value?.preferences?.preferred_currency;
-  if (!cur) return "Nenhuma moeda salva no banco";
-  const labels: Record<PreferredCurrency, string> = {
-    BRL: "Real brasileiro (BRL)",
-    EUR: "Euro (EUR)",
-    USD: "Dólar americano (USD)",
-  };
-  return labels[cur];
-});
 
 const currencyOptions: { label: string; value: PreferredCurrency }[] = [
   { label: "Real brasileiro (BRL)", value: "BRL" },
@@ -53,7 +41,7 @@ const currencyOptions: { label: string; value: PreferredCurrency }[] = [
 const currencyChoice = ref<PreferredCurrency>("BRL");
 
 watch(
-  () => data.value?.preferences?.preferred_currency,
+  () => preferences.value?.preferred_currency,
   (c) => {
     if (c) currencyChoice.value = c;
   },
@@ -69,7 +57,7 @@ async function savePreferredCurrency() {
       method: "PATCH",
       body: { preferred_currency: currencyChoice.value },
     });
-    await refresh();
+    await getPreferences();
     useToast({
       type: "success",
       title: "Preferência salva",
@@ -168,8 +156,7 @@ function onChangePasswordPlaceholder() {
         <Button
           type="button"
           :disabled="
-            savingCurrency ||
-            currencyChoice === data?.preferences?.preferred_currency
+            savingCurrency || currencyChoice === preferences?.preferred_currency
           "
           @click="savePreferredCurrency"
         >
