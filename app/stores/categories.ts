@@ -66,5 +66,10 @@ export const useCategoriesStore = defineStore("categories", () => {
     };
   }
 
-  return { categories, filter, pending, reset, getCategories, deleteCategory };
+  const clearFilters = () => {
+    filter.value.search = "";
+    filter.value.type = undefined;
+  }
+
+  return { categories, filter, pending, reset, getCategories, deleteCategory, clearFilters };
 });

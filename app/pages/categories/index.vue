@@ -18,7 +18,7 @@ definePageMeta({
 
 const isOpenNew = computed(() => useRoute().query.open === "true");
 
-const { getCategories, deleteCategory } = useCategoriesStore();
+const { getCategories, deleteCategory, clearFilters } = useCategoriesStore();
 const { categories, filter, pending } = storeToRefs(useCategoriesStore());
 
 const headers: TableHeaders[] = [
@@ -53,6 +53,10 @@ const openAlert = (id: string) => {
 onMounted(() => {
   getCategories();
 });
+
+onUnmounted(() => {
+  clearFilters();
+});
 </script>
 
 <template>
@@ -80,6 +84,7 @@ onMounted(() => {
           variant="outline"
           size="sm"
           @click="getCategories"
+          :disabled="pending"
           class="flex-1 sm:flex-none"
         >
           <Icon
