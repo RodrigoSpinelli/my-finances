@@ -109,25 +109,23 @@ const openAlert = (id: string) => {
       </p>
     </header>
 
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
       <shared-input
         v-model="search"
         placeholder="Pesquisar categoria"
         type="search"
         icon="lucide:search"
-        class="w-full max-w-xs"
+        class="w-full sm:max-w-xs"
       />
-      <div class="flex items-center gap-2">
-        <Button type="button" variant="outline" size="sm" @click="refresh">
+      <div class="flex items-center space-x-2">
+        <Button type="button" variant="outline" size="sm" @click="refresh" class="flex-1 sm:flex-none">
           <Icon
             name="lucide:refresh-cw"
             :class="{ 'animate-spin': status === 'pending' }"
           />
-          {{ status === "pending" ? "Carregando..." : "Atualizar" }}
         </Button>
-        <Button type="button" variant="default" size="sm" @click="openDialog()">
+        <Button type="button" variant="default" size="sm" @click="openDialog()" class="flex-1 sm:flex-none">
           <Icon name="lucide:plus" />
-          Nova categoria
         </Button>
       </div>
     </div>
@@ -165,7 +163,7 @@ const openAlert = (id: string) => {
             <shared-color-swatch :color="c.color" />
           </TableCell>
           <TableCell class="text-right">
-            <div class="flex flex-wrap justify-end gap-2">
+            <div class="flex items-center space-x-2">
               <Button
                 type="button"
                 variant="ghost"

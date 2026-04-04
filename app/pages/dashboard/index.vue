@@ -84,13 +84,13 @@ const getAll = async () => {
 
 <template>
   <div class="mx-auto max-w-7xl space-y-4 p-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
       <div class="grid gap-4">
         <h1 class="text-2xl font-semibold tracking-tight">
           Bem-vindo(a), {{ user?.user_metadata?.display_name }}!
         </h1>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center space-x-2">
         <shared-drawer
           form="transaction"
           title="Nova despesa"
@@ -106,7 +106,7 @@ const getAll = async () => {
         </shared-drawer>
         <NativeSelect
           v-model="month"
-          class="w-[min(100%,220px)] shrink-0"
+          class="flex-1 sm:w-[min(100%,220px)] shrink-0"
           aria-label="Mês de referência"
         >
           <NativeSelectOption
