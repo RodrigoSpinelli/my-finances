@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { PiggyBankIcon } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
+
+const authorSite = "https://www.rodrigospinelli.dev";
 </script>
 
 <template>
@@ -41,29 +43,34 @@ import { Button } from "@/components/ui/button";
     <main class="flex-1">
       <slot />
     </main>
-    <footer class="border-border border-t py-8">
+    <footer class="border-border border-t py-6 sm:py-8">
       <div
-        class="text-muted-foreground mx-auto flex max-w-5xl flex-col items-center gap-2 px-4 text-center text-sm sm:px-6 sm:flex-row sm:justify-between sm:text-left"
+        class="text-muted-foreground mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 text-center text-sm sm:px-6 lg:flex-row lg:items-start lg:justify-between lg:gap-6 lg:text-left"
       >
-        <p class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+        <p
+          class="flex max-w-md flex-wrap items-center justify-center gap-x-2 gap-y-1 lg:justify-start"
+        >
           <PiggyBankIcon class="text-primary size-5 shrink-0" aria-hidden="true" />
           <span class="text-foreground font-medium">Porquinho Financeiro</span>
-          <span class="hidden sm:inline">·</span>
+          <span class="hidden sm:inline" aria-hidden="true">·</span>
           <span>&copy; {{ new Date().getFullYear() }}</span>
         </p>
-        <div class="flex gap-4">
-          <NuxtLink
-            to="/login"
-            class="text-foreground/80 hover:text-foreground font-medium underline-offset-4 hover:underline"
+        <div
+          class="flex w-full max-w-md flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:w-auto lg:max-w-none lg:flex-col lg:items-end lg:gap-2"
+        >
+          <p
+            class="flex flex-wrap items-center justify-center gap-x-1 text-xs sm:text-sm lg:justify-end"
           >
-            Entrar
-          </NuxtLink>
-          <NuxtLink
-            to="/register"
-            class="text-foreground/80 hover:text-foreground font-medium underline-offset-4 hover:underline"
-          >
-            Registrar
-          </NuxtLink>
+            <span>Desenvolvido por</span>
+            <a
+              :href="authorSite"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-foreground font-medium underline-offset-4 hover:underline"
+            >
+              Rodrigo Spinelli
+            </a>
+          </p>
         </div>
       </div>
     </footer>
