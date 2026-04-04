@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import type { DashboardBalance } from "~/interfaces/balance";
-import type { Category } from "~/interfaces/category";
 import type { GoalPayload } from "~/interfaces/goal";
 import type {
   ExpenseDailyResponse,
   MonthFlowResponse,
   CategoryData,
 } from "~/interfaces/dashboard";
-
-const { data, refresh } = await useFetch<{ categories: Category[] }>(
-  "/api/categories",
-);
 
 definePageMeta({
   name: "dashboard",
@@ -20,7 +15,10 @@ useHead({
   title: "Dashboard",
 });
 
-const isOpen = computed(() => (data.value?.categories?.length ?? 0) === 0);
+const { categories } = storeToRefs(useCategoriesStore());
+const { getCategories } = useCategoriesStore();
+
+const isOpen = ref(categories.value.length === 0);
 
 const user = useSupabaseUser();
 
@@ -80,11 +78,17 @@ const getAll = async () => {
     categoriesRefresh(),
   ]);
 };
+
+onMounted(() => {
+  getCategories();
+});
 </script>
 
 <template>
   <div class="mx-auto max-w-7xl space-y-4 p-6">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+    >
       <div class="grid gap-4">
         <h1 class="text-2xl font-semibold tracking-tight">
           Bem-vindo(a), {{ user?.user_metadata?.display_name }}!
@@ -135,7 +139,7 @@ const getAll = async () => {
         :month="month"
         :pending="goalPending"
         :data="goalData ?? null"
-        @refresh="refresh"
+        @refresh="getAll"
         class="lg:col-span-4 sm:col-span-4"
       />
 
@@ -160,7 +164,7 @@ const getAll = async () => {
       title="Escolha suas primeiras categorias"
       description="Selecione as categorias iniciais que você irá utilizar no seu controle financeiro. Isso ajudará a personalizar sua experiência. Você poderá adicionar ou editar categorias depois, se quiser."
       form="firstCategories"
-      @submit="refresh"
+      @submit="getCategories"
     />
   </div>
 </template>
