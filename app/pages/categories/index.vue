@@ -16,6 +16,8 @@ definePageMeta({
   name: "categories",
 });
 
+const isOpenNew = computed(() => useRoute().query.open === 'true');
+
 type CategoryType = Category["type"];
 
 const { start, finish } = useLoadingIndicator();
@@ -33,7 +35,7 @@ const headers: TableHeaders[] = [
 ];
 
 const search = ref("");
-const isOpen = ref(false);
+const isOpen = ref(isOpenNew.value);
 const isOpenAlert = ref(false);
 const categorySelected = ref<Category | null>(null);
 const dialogId = ref<string | undefined>(undefined);
@@ -109,7 +111,9 @@ const openAlert = (id: string) => {
       </p>
     </header>
 
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+    >
       <shared-input
         v-model="search"
         placeholder="Pesquisar categoria"
@@ -118,13 +122,25 @@ const openAlert = (id: string) => {
         class="w-full sm:max-w-xs"
       />
       <div class="flex items-center space-x-2">
-        <Button type="button" variant="outline" size="sm" @click="refresh" class="flex-1 sm:flex-none">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          @click="refresh"
+          class="flex-1 sm:flex-none"
+        >
           <Icon
             name="lucide:refresh-cw"
             :class="{ 'animate-spin': status === 'pending' }"
           />
         </Button>
-        <Button type="button" variant="default" size="sm" @click="openDialog()" class="flex-1 sm:flex-none">
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          @click="openDialog()"
+          class="flex-1 sm:flex-none"
+        >
           <Icon name="lucide:plus" />
         </Button>
       </div>
