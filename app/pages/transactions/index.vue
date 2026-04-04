@@ -3,7 +3,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import type { Category } from "~/interfaces/category";
 import type { Tables } from "~/types/database.types";
 import type { TableHeaders } from "~/interfaces/table";
-import type { DateValue } from '@internationalized/date'
+import type { DateValue } from "@internationalized/date";
 
 useHead({
   title: "Transações",
@@ -83,7 +83,9 @@ const { data, refresh, status, pending } = await useFetch<{
       pageSize: PAGE_SIZE,
       ...(filter.value.type ? { type: filter.value.type } : {}),
       ...(filter.value.date ? { date: filter.value.date.toString() } : {}),
-      ...(filter.value.categoryId ? { categoryId: filter.value.categoryId } : {}),
+      ...(filter.value.categoryId
+        ? { categoryId: filter.value.categoryId }
+        : {}),
     };
   }),
   watch: [page, filterQueryKey],
@@ -229,22 +231,33 @@ async function afterTransactionSave() {
           v-model="filter.categoryId"
         />
       </div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex items-center space-x-2">
         <Button
           type="button"
           variant="outline"
           title="Limpar filtros"
           @click="clearFilters"
+          class="flex-1 sm:flex-none"
         >
           <Icon name="lucide:filter-x" />
         </Button>
-        <Button type="button" variant="outline" @click="refresh">
+        <Button
+          type="button"
+          variant="outline"
+          @click="refresh"
+          class="flex-1 sm:flex-none"
+        >
           <Icon
             name="lucide:refresh-cw"
             :class="{ 'animate-spin': status === 'pending' }"
           />
         </Button>
-        <Button type="button" variant="default" @click="openDialog()">
+        <Button
+          type="button"
+          variant="default"
+          @click="openDialog()"
+          class="flex-1 sm:flex-none"
+        >
           <Icon name="lucide:plus" />
         </Button>
       </div>
@@ -301,7 +314,7 @@ async function afterTransactionSave() {
           {{ t.description || "Não informado" }}
         </TableCell>
         <TableCell class="text-right">
-          <div class="flex flex-wrap justify-end gap-2">
+          <div class="flex flex-nowrap justify-end gap-2">
             <Button
               type="button"
               variant="ghost"
