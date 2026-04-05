@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WalletIcon, WalletMinimalIcon } from "lucide-vue-next";
+import { CalendarArrowDownIcon, WalletIcon } from "lucide-vue-next";
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { GoalPayload } from "~/interfaces/goal";
 import type {
@@ -146,7 +146,7 @@ onMounted(() => {
         title="Saldo anterior"
         description="Referência do mês passado"
         accent="sky"
-        :icon="WalletMinimalIcon"
+        :icon="CalendarArrowDownIcon"
         class="sm:col-span-3"
       />
       <app-dashboard-card-month-total-expense
