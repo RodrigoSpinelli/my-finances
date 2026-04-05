@@ -6,8 +6,6 @@ import { ChartLineIcon } from "lucide-vue-next"
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -166,15 +164,5 @@ const crosshairTemplate = componentToString(
         </VisXYContainer>
       </ChartContainer>
     </CardContent>
-    <CardFooter
-      class="border-t border-border/50 px-6 pb-6 pt-4 [.border-t]:pt-4"
-    >
-      <CardDescription class="w-full text-center sm:text-left">
-        <span class="text-muted-foreground">Total no mês</span>
-        <span class="mt-0.5 block font-semibold text-foreground tabular-nums">
-          {{ monthTotalLabel }}
-        </span>
-      </CardDescription>
-    </CardFooter>
   </Card>
 </template>
