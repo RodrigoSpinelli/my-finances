@@ -35,6 +35,9 @@ interface Form {
   type: TransactionType;
 }
 
+const { categories } = storeToRefs(useCategoriesStore());
+const { getCategories } = useCategoriesStore();
+
 function todayIso() {
   const d = new Date();
   const y = d.getFullYear();
@@ -57,8 +60,6 @@ const form = reactive<Form>({
   type: props.type ?? "expense",
 });
 
-const categories = ref<Category[]>([]);
-
 const typeOptions = [
   { label: "Receita", value: "income" },
   { label: "Despesa", value: "expense" },
@@ -67,26 +68,6 @@ const typeOptions = [
 const categoryOptions = computed(() => {
   return categories.value.map((c) => ({ label: c.name, value: c.id }));
 });
-
-async function loadLookups() {
-  try {
-    const [c] = await Promise.all([
-      $fetch<{ categories: Category[] }>("/api/categories", {
-        params: {
-          type: form.type,
-        },
-      }),
-    ]);
-    categories.value = c.categories;
-  } catch (error) {
-    useToast({
-      type: "error",
-      title: "Erro!",
-      description:
-        error instanceof Error ? error.message : "Erro ao carregar listas",
-    });
-  }
-}
 
 const submit = () => {
   props.id ? update() : create();
@@ -218,7 +199,7 @@ function resetForm() {
 watch(
   () => form.type,
   () => {
-    loadLookups();
+    getCategories();
     form.categoryId = undefined;
   },
   { immediate: true },
