@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { Progress } from "@/components/ui/progress"
-import { TagIcon } from "lucide-vue-next"
-import type { CategoryData } from "~/interfaces/dashboard"
+import { Progress } from "@/components/ui/progress";
+import { TagIcon } from "lucide-vue-next";
+import type { CategoryData } from "~/interfaces/dashboard";
 
 const { pending, data } = defineProps<{
-  pending: boolean
-  data: CategoryData | null
-}>()
+  pending: boolean;
+  data: CategoryData | null;
+}>();
 
-const items = computed(() => data?.items ?? [])
-const hasItems = computed(() => items.value.length > 0)
+const { preferences } = storeToRefs(useUserStore());
+
+const items = computed(() => data?.items ?? []);
+const hasItems = computed(() => items.value.length > 0);
 </script>
 
 <template>
@@ -41,7 +43,11 @@ const hasItems = computed(() => items.value.length > 0)
     </CardHeader>
     <CardContent class="space-y-3 px-6 pb-6 pt-0">
       <div v-if="pending" class="space-y-4 py-1">
-        <div v-for="n in 5" :key="n" class="space-y-2 rounded-xl border border-border/40 bg-muted/15 p-3">
+        <div
+          v-for="n in 5"
+          :key="n"
+          class="space-y-2 rounded-xl border border-border/40 bg-muted/15 p-3"
+        >
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
               <Skeleton class="size-8 rounded-lg" />
@@ -56,31 +62,39 @@ const hasItems = computed(() => items.value.length > 0)
         v-else-if="hasItems"
         class="max-h-[min(400px,50vh)] space-y-3 overflow-y-auto pr-1"
       >
-        <div
+        <shared-tooltip
           v-for="category in items"
           :key="category.category_id"
-          class="space-y-2 rounded-xl border border-border/50 bg-muted/20 p-3 transition-colors hover:bg-muted/30"
+          :title="
+            category.total_amount.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: preferences?.preferred_currency ?? 'BRL',
+            })
+          "
         >
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex min-w-0 items-center gap-2.5">
+          <div
+            class="space-y-2 rounded-xl border border-border/50 bg-muted/20 p-3 transition-colors hover:bg-muted/30"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex min-w-0 items-center gap-2.5">
+                <span
+                  class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background/80 ring-1 ring-border/60"
+                >
+                  <Icon :name="category.icon" class="size-4 shrink-0" />
+                </span>
+                <span class="truncate text-sm font-medium">{{
+                  category.name
+                }}</span>
+              </div>
               <span
-                class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background/80 ring-1 ring-border/60"
+                class="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground"
               >
-                <Icon :name="category.icon" class="size-4 shrink-0" />
+                {{ category.percentage }}%
               </span>
-              <span class="truncate text-sm font-medium">{{ category.name }}</span>
             </div>
-            <span
-              class="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground"
-            >
-              {{ category.percentage }}%
-            </span>
+            <Progress :model-value="category.percentage" class="h-2.5" />
           </div>
-          <Progress
-            :model-value="category.percentage"
-            class="h-2.5"
-          />
-        </div>
+        </shared-tooltip>
       </div>
       <div
         v-else
