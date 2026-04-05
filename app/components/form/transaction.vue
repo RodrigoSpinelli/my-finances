@@ -2,9 +2,8 @@
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { TransactionWithCategory } from "~/interfaces/transaction";
 import type { Category } from "~/interfaces/category";
-import type { Transaction } from "~/interfaces/transaction";
-import type { Database } from "~/types/database.types";
 import { getFetchErrorMessage } from "~/utils/fetch-error";
 import {
   formatMoneyInputBr,
@@ -12,19 +11,15 @@ import {
   parseMoneyInputBr,
 } from "~/utils/money-input";
 
-type TransactionType = Database["public"]["Enums"]["transaction_type"];
-
-type TransactionApi = Transaction & {
-  categories: Category | null;
-};
-
-const props = defineProps<{
+interface Props {
   id?: string;
-  type?: TransactionType;
-}>();
+}
+
+const { id } = defineProps<Props>();
 
 const emit = defineEmits<{
   (e: "submit"): void;
+  (e: "cancel"): void;
 }>();
 
 interface Form {
@@ -35,8 +30,27 @@ interface Form {
   type: TransactionType;
 }
 
-const { categories } = storeToRefs(useCategoriesStore());
-const { getCategories } = useCategoriesStore();
+const categories = ref<Category[]>([]);
+
+const getCategories = async () => {
+  const { categories: list, total } = await $fetch<{
+    categories: Category[];
+    total: number;
+  }>("/api/categories", {
+    query: {
+      type: form.type,
+    },
+  });
+  categories.value = list;
+  if (total === 0) {
+    emit("cancel");
+    useToast({
+      type: "error",
+      title: "Nenhuma categoria encontrada!",
+      description: "Cadastre uma categoria para continuar",
+    });
+  }
+};
 
 function todayIso() {
   const d = new Date();
@@ -46,18 +60,12 @@ function todayIso() {
   return `${y}-${m}-${day}`;
 }
 
-function categoryIdForApi(id: string | undefined | null): string | null {
-  if (id === undefined || id === null) return null;
-  const t = String(id).trim();
-  return t.length ? t : null;
-}
-
 const form = reactive<Form>({
   amount: MONEY_INPUT_DEFAULT_DISPLAY,
   categoryId: undefined,
   date: todayIso(),
   description: "",
-  type: props.type ?? "expense",
+  type: "expense",
 });
 
 const typeOptions = [
@@ -70,7 +78,7 @@ const categoryOptions = computed(() => {
 });
 
 const submit = () => {
-  props.id ? update() : create();
+  id ? update() : create();
 };
 
 const create = async () => {
@@ -97,7 +105,7 @@ const create = async () => {
       method: "post",
       body: {
         amount,
-        category_id: categoryIdForApi(form.categoryId),
+        category_id: form.categoryId,
         date: form.date,
         description: form.description.trim() || null,
         type: form.type,
@@ -139,14 +147,14 @@ const update = async () => {
       return;
     }
 
-    await $fetch("/api/transactions/" + props.id, {
+    await $fetch("/api/transactions/" + id, {
       method: "patch",
       params: {
-        id: props.id,
+        id: id,
       },
       body: {
         amount,
-        category_id: categoryIdForApi(form.categoryId),
+        category_id: form.categoryId,
         date: form.date,
         description: form.description.trim() || null,
         type: form.type,
@@ -169,11 +177,11 @@ const update = async () => {
 };
 
 const getData = async () => {
-  if (!props.id) return;
+  if (!id) return;
   try {
-    const { transaction: t } = await $fetch<{ transaction: TransactionApi }>(
-      `/api/transactions/${props.id}`,
-    );
+    const { transaction: t } = await $fetch<{
+      transaction: TransactionWithCategory;
+    }>(`/api/transactions/${id}`);
     form.amount = formatMoneyInputBr(t.amount);
     form.categoryId = t.category_id ?? undefined;
     form.date = t.date;
@@ -206,29 +214,12 @@ watch(
 );
 
 onMounted(() => {
-  props.id && getData();
+  id && getData();
 });
 </script>
 
 <template>
   <form class="space-y-4" @submit.prevent="submit">
-    <div class="grid gap-4 sm:grid-cols-2">
-      <shared-select
-        v-if="!props.type"
-        id="tx_type"
-        v-model="form.type"
-        placeholder="Tipo"
-        label="Tipo"
-        :options="typeOptions"
-      />
-      <shared-date-input
-        id="tx_date"
-        v-model="form.date"
-        label="Data"
-        :class="{ 'col-span-2': !!type }"
-        required
-      />
-    </div>
     <shared-input
       id="tx_amount"
       v-model="form.amount"
@@ -239,13 +230,21 @@ onMounted(() => {
       type="text"
       required
     />
-    <div class="space-y-2">
-      <Label for="tx_category">Categoria *</Label>
+    <shared-date-input id="tx_date" v-model="form.date" label="Data" required />
+    <div class="grid gap-4 sm:grid-cols-2">
+      <shared-select
+        id="tx_type"
+        v-model="form.type"
+        placeholder="Tipo"
+        label="Tipo"
+        :options="typeOptions"
+      />
       <shared-select
         id="tx_category"
         v-model="form.categoryId"
         placeholder="Categoria"
         :options="categoryOptions"
+        label="Categoria"
         required
       />
     </div>
