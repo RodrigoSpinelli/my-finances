@@ -10,7 +10,7 @@ import {
   componentToString,
 } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
-import { BanknoteArrowUp, BanknoteArrowDown, HandCoins } from "lucide-vue-next";
+import { BanknoteArrowUp, BanknoteArrowDown, LandmarkIcon } from "lucide-vue-next";
 import type { MonthFlowResponse } from "~/interfaces/dashboard";
 
 
@@ -99,7 +99,7 @@ const hasMovement = computed(() => chartModel.value.chartData.length > 0);
   <Card class="flex flex-col">
     <CardHeader class="gap-4 flex flex-wrap items-center justify-between border-b">
       <CardTitle>Transações</CardTitle>
-      <HandCoins />
+      <LandmarkIcon />
     </CardHeader>
     <CardContent class="flex flex-1 flex-col pb-0">
       <div

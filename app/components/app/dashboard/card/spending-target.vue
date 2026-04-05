@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CrosshairIcon, SquarePenIcon } from "lucide-vue-next";
+import { TargetIcon, SquarePenIcon } from "lucide-vue-next";
 import { Progress } from "@/components/ui/progress";
 import type { GoalPayload } from "~/interfaces/goal";
 
@@ -36,7 +36,7 @@ const progressPercent = computed(() => {
       class="gap-4 flex flex-wrap items-center justify-between border-b"
     >
       <CardTitle>Meta de gastos do mês</CardTitle>
-      <CrosshairIcon />
+      <TargetIcon />
     </CardHeader>
     <CardContent>
       <div v-if="pending" class="text-muted-foreground text-sm">

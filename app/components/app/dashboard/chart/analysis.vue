@@ -2,7 +2,7 @@
 import type { ChartConfig } from "@/components/ui/chart"
 import { CurveType } from "@unovis/ts"
 import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
-import { TrendingDown } from "lucide-vue-next"
+import { PieChartIcon } from "lucide-vue-next"
 import {
   Card,
   CardContent,
@@ -68,14 +68,9 @@ const crosshairTemplate = componentToString(
 
 <template>
   <Card class="flex flex-col">
-    <CardHeader class="gap-1 border-b">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <CardTitle>Análise de gastos</CardTitle>
-        <TrendingDown class="text-muted-foreground size-5 shrink-0" />
-      </div>
-      <CardDescription>
-        Evolução dos gastos por dia no mês · Total: {{ monthTotalLabel }}
-      </CardDescription>
+    <CardHeader class="border-b flex flex-wrap items-center justify-between">
+      <CardTitle>Análise de gastos</CardTitle>
+        <PieChartIcon />
     </CardHeader>
     <CardContent class="flex flex-1 flex-col pt-4">
       <div
@@ -142,5 +137,10 @@ const crosshairTemplate = componentToString(
         </VisXYContainer>
       </ChartContainer>
     </CardContent>
+    <CardFooter class="border-t">
+      <CardDescription>
+        Evolução dos gastos por dia no mês · Total: {{ monthTotalLabel }}
+      </CardDescription>
+    </CardFooter>
   </Card>
 </template>
