@@ -1,68 +1,68 @@
 <script setup lang="ts">
-import type { ChartConfig } from "@/components/ui/chart"
-import { Donut } from "@unovis/ts"
-import { VisDonut, VisSingleContainer } from "@unovis/vue"
+import type { ChartConfig } from "@/components/ui/chart";
+import { Donut } from "@unovis/ts";
+import { VisDonut, VisSingleContainer } from "@unovis/vue";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/chart";
+import { Badge } from "@/components/ui/badge";
 import {
   BanknoteArrowUp,
   BanknoteArrowDown,
   LandmarkIcon,
-} from "lucide-vue-next"
-import type { MonthFlowResponse } from "~/interfaces/dashboard"
+} from "lucide-vue-next";
+import type { MonthFlowResponse } from "~/interfaces/dashboard";
 
-const SLICE_INCOME = "income"
-const SLICE_EXPENSE = "expense"
+const SLICE_INCOME = "income";
+const SLICE_EXPENSE = "expense";
 
-type SliceRow = Record<string, string | number>
+type SliceRow = Record<string, string | number>;
 
 function segmentKey(row: SliceRow): string {
   for (const k of Object.keys(row)) {
-    if (k !== "fill") return k
+    if (k !== "fill") return k;
   }
-  return SLICE_INCOME
+  return SLICE_INCOME;
 }
 
 function sliceValue(row: SliceRow): number {
-  const k = segmentKey(row)
-  const v = row[k]
-  return typeof v === "number" ? v : Number(v)
+  const k = segmentKey(row);
+  const v = row[k];
+  return typeof v === "number" ? v : Number(v);
 }
 
 /** Cores resolvidas no `[data-chart]` via ChartStyle; o SVG usa estas vars. */
 function sliceFillCss(row: SliceRow): string {
-  return `var(--color-${segmentKey(row)})`
+  return `var(--color-${segmentKey(row)})`;
 }
 
 const percent = new Intl.NumberFormat("pt-BR", {
   style: "percent",
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
-})
+});
 
 const { pending, data } = defineProps<{
-  pending: boolean
-  data: MonthFlowResponse | null
-}>()
+  pending: boolean;
+  data: MonthFlowResponse | null;
+}>();
 
-const { formatMoney } = useCurrencyFormat()
+const { formatMoney } = useCurrencyFormat();
 
 /** Apenas duas fatias: entradas e saídas no mês. */
 const chartModel = computed(() => {
-  const income = Math.abs(data?.income_total ?? 0)
-  const expense = Math.abs(data?.expense_total ?? 0)
+  const income = Math.abs(data?.income_total ?? 0);
+  const expense = Math.abs(data?.expense_total ?? 0);
 
   const chartConfig: ChartConfig = {
     [SLICE_INCOME]: {
@@ -73,32 +73,32 @@ const chartModel = computed(() => {
       label: "Saídas",
       color: "var(--destructive)",
     },
-  }
+  };
 
-  const chartData: SliceRow[] = []
+  const chartData: SliceRow[] = [];
   if (income > 0) {
     chartData.push({
       [SLICE_INCOME]: income,
       fill: `var(--color-${SLICE_INCOME})`,
-    })
+    });
   }
   if (expense > 0) {
     chartData.push({
       [SLICE_EXPENSE]: expense,
       fill: `var(--color-${SLICE_EXPENSE})`,
-    })
+    });
   }
 
-  const totalFlow = income + expense
-  const incomeShare = totalFlow > 0 ? income / totalFlow : 0
+  const totalFlow = income + expense;
+  const incomeShare = totalFlow > 0 ? income / totalFlow : 0;
   return {
     chartData,
     chartConfig,
     centralLabel: percent.format(incomeShare),
-  }
-})
+  };
+});
 
-const hasMovement = computed(() => chartModel.value.chartData.length > 0)
+const hasMovement = computed(() => chartModel.value.chartData.length > 0);
 </script>
 
 <template>
@@ -157,59 +157,49 @@ const hasMovement = computed(() => chartModel.value.chartData.length > 0)
           .
         </p>
       </div>
-      <ChartContainer
-        v-else
-        :config="chartModel.chartConfig"
-        class="mx-auto aspect-square max-h-[250px]"
-        :style="{
-          '--vis-donut-central-label-font-size': 'var(--text-2xl)',
-          '--vis-donut-central-label-font-weight': 'var(--font-weight-bold)',
-          '--vis-donut-central-label-text-color': 'var(--foreground)',
-          '--vis-donut-central-sub-label-text-color': 'var(--muted-foreground)',
-        }"
-      >
-        <VisSingleContainer
-          :data="chartModel.chartData"
-          :margin="{ top: 24, bottom: 24 }"
+      <ClientOnly v-else>
+        <ChartContainer
+          :config="chartModel.chartConfig"
+          class="mx-auto aspect-square max-h-[250px]"
+          :style="{
+            '--vis-donut-central-label-font-size': 'var(--text-2xl)',
+            '--vis-donut-central-label-font-weight': 'var(--font-weight-bold)',
+            '--vis-donut-central-label-text-color': 'var(--foreground)',
+            '--vis-donut-central-sub-label-text-color':
+              'var(--muted-foreground)',
+          }"
         >
-          <VisDonut
-            :value="(d: SliceRow) => sliceValue(d)"
-            :color="(d: SliceRow) => sliceFillCss(d)"
-            :arc-width="30"
-            :central-label="chartModel.centralLabel"
-          />
-          <ChartTooltip
-            :triggers="{
-              [Donut.selectors.segment]: componentToString(
-                chartModel.chartConfig,
-                ChartTooltipContent,
-                {
-                  hideLabel: true,
-                  valueFormatter: (n: number) => formatMoney(n),
-                },
-              )!,
-            }"
-          />
-        </VisSingleContainer>
-      </ChartContainer>
+          <VisSingleContainer
+            :data="chartModel.chartData"
+            :margin="{ top: 24, bottom: 24 }"
+          >
+            <VisDonut
+              :value="(d: SliceRow) => sliceValue(d)"
+              :color="(d: SliceRow) => sliceFillCss(d)"
+              :arc-width="30"
+              :central-label="chartModel.centralLabel"
+            />
+            <ChartTooltip
+              :triggers="{
+                [Donut.selectors.segment]: componentToString(
+                  chartModel.chartConfig,
+                  ChartTooltipContent,
+                  {
+                    hideLabel: true,
+                    valueFormatter: (n: number) => formatMoney(n),
+                  },
+                )!,
+              }"
+            />
+          </VisSingleContainer>
+        </ChartContainer>
+      </ClientOnly>
     </CardContent>
     <CardFooter
-      class="flex flex-wrap items-center justify-center gap-2 border-t border-border/50 bg-muted/20 px-6 pb-6 pt-4 [.border-t]:pt-4"
+      class="flex flex-wrap items-center justify-center gap-2 border-t border-border/50 px-6 pb-6 pt-4 [.border-t]:pt-4"
     >
-      <Badge
-        variant="outline"
-        class="gap-1.5 border-emerald-500/25 bg-emerald-500/5 font-medium dark:border-emerald-400/20 dark:bg-emerald-400/5"
-      >
-        <BanknoteArrowUp class="size-3.5 text-emerald-600 dark:text-emerald-400" />
-        Entradas
-      </Badge>
-      <Badge
-        variant="outline"
-        class="gap-1.5 border-rose-500/25 bg-rose-500/5 font-medium dark:border-rose-400/20 dark:bg-rose-400/5"
-      >
-        <BanknoteArrowDown class="size-3.5 text-rose-600 dark:text-rose-400" />
-        Saídas
-      </Badge>
+      <Badge> Entradas </Badge>
+      <Badge variant="destructive"> Saídas </Badge>
     </CardFooter>
   </Card>
 </template>
