@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, Loader2 } from "lucide-vue-next";
+import { ArrowLeft, KeyRound, Loader2 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,7 +19,6 @@ const user = useSupabaseUser();
 const redirectInfo = useSupabaseCookieRedirect();
 
 const email = ref("");
-const password = ref("");
 const loading = ref(false);
 
 watch(
@@ -34,24 +33,43 @@ watch(
 );
 
 async function onSubmit() {
+  const trimmed = email.value.trim();
+  if (!trimmed) {
+    useToast({
+      type: "error",
+      title: "E-mail obrigatório",
+      description: "Informe o e-mail da sua conta.",
+    });
+    return;
+  }
+
   loading.value = true;
-  const { error } = await supabase.auth.signInWithPassword({
-    email: email.value.trim(),
-    password: password.value,
+  const redirectTo =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/reset-password`
+      : undefined;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+    ...(redirectTo ? { redirectTo } : {}),
   });
   loading.value = false;
 
   if (error) {
     useToast({
       type: "error",
-      title: "Não foi possível entrar",
+      title: "Não foi possível enviar o e-mail",
       description: error.message,
     });
     return;
   }
 
-  const path = redirectInfo.pluck();
-  await navigateTo(path || "/dashboard");
+  useToast({
+    type: "success",
+    title: "Verifique sua caixa de entrada",
+    description:
+      "Se existir uma conta com esse e-mail, enviamos um link para redefinir a senha.",
+  });
+  await navigateTo("/login");
 }
 </script>
 
@@ -61,12 +79,18 @@ async function onSubmit() {
       class="border-border/70 bg-card/85 gap-0 shadow-xl shadow-black/4 backdrop-blur-sm dark:shadow-black/25"
     >
       <CardHeader class="border-border/60 space-y-4 border-b pb-6 text-center">
+        <div
+          class="bg-primary/12 text-primary ring-primary/10 mx-auto flex size-14 items-center justify-center rounded-2xl ring-1"
+        >
+          <KeyRound class="size-7" aria-hidden="true" />
+        </div>
         <div class="space-y-2">
           <CardTitle class="text-2xl font-semibold tracking-tight">
-            Bem-vindo de volta
+            Recuperar senha
           </CardTitle>
           <CardDescription class="text-base leading-relaxed">
-            Entre com o e-mail e a senha da sua conta para acessar o painel.
+            Enviaremos um link seguro para o e-mail cadastrado. Abra-o para
+            definir uma nova senha.
           </CardDescription>
         </div>
       </CardHeader>
@@ -81,30 +105,18 @@ async function onSubmit() {
             placeholder="voce@exemplo.com"
             required
           />
-          <shared-input
-            v-model="password"
-            label="Senha"
-            type="password"
-            icon="lucide:lock"
-            autocomplete="current-password"
-            placeholder="••••••••"
-            required
-          />
-          <div class="flex justify-end">
-            <NuxtLink
-              to="/recover-password"
-              class="text-muted-foreground hover:text-foreground text-sm font-medium underline-offset-4 hover:underline"
-            >
-              Esqueci minha senha
-            </NuxtLink>
-          </div>
-          <Button type="submit" class="mt-2 w-full gap-2" size="lg" :disabled="loading">
+          <Button
+            type="submit"
+            class="mt-2 w-full gap-2"
+            size="lg"
+            :disabled="loading"
+          >
             <Loader2
               v-if="loading"
               class="size-4 shrink-0 animate-spin"
               aria-hidden="true"
             />
-            {{ loading ? "Entrando…" : "Entrar" }}
+            {{ loading ? "Enviando…" : "Enviar link" }}
           </Button>
         </form>
       </CardContent>
@@ -112,12 +124,12 @@ async function onSubmit() {
         class="border-border/60 flex flex-col gap-4 border-t py-6"
       >
         <p class="text-muted-foreground text-center text-sm">
-          Ainda não tem conta?
+          Lembrou da senha?
           <NuxtLink
-            to="/register"
+            to="/login"
             class="text-foreground font-semibold underline-offset-4 hover:underline"
           >
-            Criar conta grátis
+            Voltar ao login
           </NuxtLink>
         </p>
         <NuxtLink

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { TableCell, TableRow } from "@/components/ui/table";
 import type { Category } from "~/interfaces/category";
-import type { Tables } from "~/types/database.types";
 import type { TableHeaders } from "~/interfaces/table";
-import type { DateValue } from '@internationalized/date'
+import type { DateValue } from "@internationalized/date";
+import type {
+  Transaction,
+  TransactionWithCategory,
+} from "~/interfaces/transaction";
 
 useHead({
   title: "Transações",
@@ -18,12 +21,6 @@ definePageMeta({
   name: "transactions",
 });
 
-type CategoryBrief = Pick<Category, "id" | "name" | "icon" | "type" | "color">;
-
-type TransactionRow = Tables<"transactions"> & {
-  categories: CategoryBrief | null;
-};
-
 const { start, finish } = useLoadingIndicator();
 
 const PAGE_SIZE = 5;
@@ -37,24 +34,15 @@ const filter = ref<{
   date: undefined,
 });
 
-const filterDateModel = computed({
-  get: () => filter.value.date as DateValue | undefined,
-  set: (v: DateValue | undefined) => {
-    filter.value.date = v;
-  },
-});
-
 const typeOptions = [
   { label: "Receita", value: "income" },
   { label: "Despesa", value: "expense" },
 ];
 
-const { data: categoriesData } = await useFetch<{ categories: Category[] }>(
-  "/api/categories",
-);
+const { categories } = storeToRefs(useCategoriesStore());
 
 const categoryOptions = computed(() =>
-  (categoriesData.value?.categories ?? []).map((c) => ({
+  categories.value.map((c) => ({
     label: c.name,
     value: c.id,
   })),
@@ -72,7 +60,7 @@ watch(filterQueryKey, () => {
 });
 
 const { data, refresh, status, pending } = await useFetch<{
-  transactions: TransactionRow[];
+  transactions: TransactionWithCategory[];
   total: number;
   page: number;
   pageSize: number;
@@ -83,7 +71,9 @@ const { data, refresh, status, pending } = await useFetch<{
       pageSize: PAGE_SIZE,
       ...(filter.value.type ? { type: filter.value.type } : {}),
       ...(filter.value.date ? { date: filter.value.date.toString() } : {}),
-      ...(filter.value.categoryId ? { categoryId: filter.value.categoryId } : {}),
+      ...(filter.value.categoryId
+        ? { categoryId: filter.value.categoryId }
+        : {}),
     };
   }),
   watch: [page, filterQueryKey],
@@ -107,7 +97,7 @@ const headers: TableHeaders[] = [
 const isOpen = ref(false);
 const isOpenAlert = ref(false);
 const dialogId = ref<string | undefined>(undefined);
-const transactionSelected = ref<TransactionRow | null>(null);
+const transactionSelected = ref<Transaction | null>(null);
 
 const { money } = useCurrencyFormat();
 
@@ -127,10 +117,8 @@ watch(
   },
 );
 
-function typeLabel(t: Tables<"transactions">["type"]) {
-  if (t === "income") return "Receita";
-  if (t === "expense") return "Despesa";
-  return "—";
+function typeLabel(t: TransactionType) {
+  return t === "income" ? "Receita" : "Despesa";
 }
 
 function formatDate(iso: string) {
@@ -229,22 +217,33 @@ async function afterTransactionSave() {
           v-model="filter.categoryId"
         />
       </div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex items-center space-x-2">
         <Button
           type="button"
           variant="outline"
           title="Limpar filtros"
           @click="clearFilters"
+          class="flex-1 sm:flex-none"
         >
           <Icon name="lucide:filter-x" />
         </Button>
-        <Button type="button" variant="outline" @click="refresh">
+        <Button
+          type="button"
+          variant="outline"
+          @click="refresh"
+          class="flex-1 sm:flex-none"
+        >
           <Icon
             name="lucide:refresh-cw"
             :class="{ 'animate-spin': status === 'pending' }"
           />
         </Button>
-        <Button type="button" variant="default" @click="openDialog()">
+        <Button
+          type="button"
+          variant="default"
+          @click="openDialog()"
+          class="flex-1 sm:flex-none"
+        >
           <Icon name="lucide:plus" />
         </Button>
       </div>
@@ -288,12 +287,12 @@ async function afterTransactionSave() {
           {{ money.format(t.amount) }}
         </TableCell>
         <TableCell>
-          <span v-if="t.categories" class="inline-flex items-center gap-2">
+          <span v-if="t.category" class="inline-flex items-center gap-2">
             <Icon
-              :name="t.categories.icon"
+              :name="t.category.icon"
               class="text-muted-foreground size-4 shrink-0"
             />
-            {{ t.categories.name }}
+            {{ t.category.name }}
           </span>
           <span v-else class="text-muted-foreground">—</span>
         </TableCell>
@@ -301,7 +300,7 @@ async function afterTransactionSave() {
           {{ t.description || "Não informado" }}
         </TableCell>
         <TableCell class="text-right">
-          <div class="flex flex-wrap justify-end gap-2">
+          <div class="flex flex-nowrap justify-end gap-2">
             <Button
               type="button"
               variant="ghost"

@@ -9,6 +9,7 @@ interface Category {
   color: BadgeVariants["variant"];
   selected: boolean;
 }
+
 const emit = defineEmits<{
   (e: "submit"): void;
 }>();
@@ -111,6 +112,10 @@ const createCategories = async () => {
     isLoading.value = false;
   }
 };
+
+const newCategory = () => {
+  navigateTo({ path: '/categories', query: { open: 'true' } })
+};
 </script>
 
 <template>
@@ -130,7 +135,7 @@ const createCategories = async () => {
     </div>
     <shared-alert
       v-if="showAlert && !isLoading && selectedCategories.length === 0"
-      title="Você deve selecionar pelo menos uma categoria"
+      title="Você deve selecionar pelo menos uma categoria ou criar uma nova categoria."
       variant="warning"
       icon="lucide:alert-circle"
     />
@@ -141,10 +146,15 @@ const createCategories = async () => {
       :loading="isLoading"
     >
       <Icon
-        :name="isLoading ? 'lucide:loader-circle' : 'lucide:save'"
+        v-if="isLoading"
+        name="lucide:loader-circle"
         :class="{ 'animate-spin': isLoading }"
       />
-      {{ isLoading ? "Salvando..." : "Salvar" }}</Button
-    >
+      {{ isLoading ? "Salvando..." : "Salvar" }}
+    </Button>
+    <Button type="button" variant="link" class="w-full" @click="newCategory">
+      Crie você mesmo a sua categoria
+      <Icon name="lucide:arrow-right" />
+    </Button>
   </form>
 </template>

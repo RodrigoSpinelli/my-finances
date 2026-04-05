@@ -9,6 +9,7 @@ const formComponents = {
     () => import("@/components/form/first-categories.vue"),
   ),
   setGoals: defineAsyncComponent(() => import("@/components/form/set-goals.vue")),
+  changePassword: defineAsyncComponent(() => import("@/components/form/change-password.vue")),
 } as const;
 
 export type FormComponentKey = keyof typeof formComponents;

@@ -155,7 +155,7 @@ export type Database = {
           date: string
           description: string | null
           id: string
-          type: Database["public"]["Enums"]["transaction_type"] | null
+          type: Database["public"]["Enums"]["transaction_type"]
           user_id: string
         }
         Insert: {
@@ -165,7 +165,7 @@ export type Database = {
           date: string
           description?: string | null
           id?: string
-          type?: Database["public"]["Enums"]["transaction_type"] | null
+          type: Database["public"]["Enums"]["transaction_type"]
           user_id: string
         }
         Update: {
@@ -175,7 +175,7 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
-          type?: Database["public"]["Enums"]["transaction_type"] | null
+          type?: Database["public"]["Enums"]["transaction_type"]
           user_id?: string
         }
         Relationships: [

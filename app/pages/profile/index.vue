@@ -76,14 +76,6 @@ async function savePreferredCurrency() {
     savingCurrency.value = false;
   }
 }
-
-function onChangePasswordPlaceholder() {
-  useToast({
-    type: "info",
-    title: "Em breve",
-    description: "A troca de senha ainda não está integrada.",
-  });
-}
 </script>
 
 <template>
@@ -102,14 +94,18 @@ function onChangePasswordPlaceholder() {
         class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"
       >
         <h2 class="text-lg font-medium">Conta</h2>
-        <Button
-          type="button"
-          variant="secondary"
-          @click="onChangePasswordPlaceholder"
+        <shared-dialog
+          form="changePassword"
+          title="Alterar senha"
+          description="Alterar a senha da conta"
         >
-          <Icon name="lucide:key-round" class="size-4" />
-          Trocar senha
-        </Button>
+          <template #trigger>
+            <Button type="button" variant="secondary">
+              <Icon name="lucide:key-round" class="size-4" />
+              Trocar senha
+            </Button>
+          </template>
+        </shared-dialog>
       </div>
 
       <dl class="space-y-4 text-sm">
