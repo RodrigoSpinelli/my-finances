@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { TableCell, TableRow } from "@/components/ui/table";
 import type { Category } from "~/interfaces/category";
-import type { Tables } from "~/types/database.types";
 import type { TableHeaders } from "~/interfaces/table";
 import type { DateValue } from "@internationalized/date";
+import type {
+  Transaction,
+  TransactionWithCategory,
+} from "~/interfaces/transaction";
 
 useHead({
   title: "Transações",
@@ -18,12 +21,6 @@ definePageMeta({
   name: "transactions",
 });
 
-type CategoryBrief = Pick<Category, "id" | "name" | "icon" | "type" | "color">;
-
-type TransactionRow = Tables<"transactions"> & {
-  categories: CategoryBrief | null;
-};
-
 const { start, finish } = useLoadingIndicator();
 
 const PAGE_SIZE = 5;
@@ -37,24 +34,15 @@ const filter = ref<{
   date: undefined,
 });
 
-const filterDateModel = computed({
-  get: () => filter.value.date as DateValue | undefined,
-  set: (v: DateValue | undefined) => {
-    filter.value.date = v;
-  },
-});
-
 const typeOptions = [
   { label: "Receita", value: "income" },
   { label: "Despesa", value: "expense" },
 ];
 
-const { data: categoriesData } = await useFetch<{ categories: Category[] }>(
-  "/api/categories",
-);
+const { categories } = storeToRefs(useCategoriesStore());
 
 const categoryOptions = computed(() =>
-  (categoriesData.value?.categories ?? []).map((c) => ({
+  categories.value.map((c) => ({
     label: c.name,
     value: c.id,
   })),
@@ -72,7 +60,7 @@ watch(filterQueryKey, () => {
 });
 
 const { data, refresh, status, pending } = await useFetch<{
-  transactions: TransactionRow[];
+  transactions: TransactionWithCategory[];
   total: number;
   page: number;
   pageSize: number;
@@ -109,7 +97,7 @@ const headers: TableHeaders[] = [
 const isOpen = ref(false);
 const isOpenAlert = ref(false);
 const dialogId = ref<string | undefined>(undefined);
-const transactionSelected = ref<TransactionRow | null>(null);
+const transactionSelected = ref<Transaction | null>(null);
 
 const { money } = useCurrencyFormat();
 
@@ -129,10 +117,8 @@ watch(
   },
 );
 
-function typeLabel(t: Tables<"transactions">["type"]) {
-  if (t === "income") return "Receita";
-  if (t === "expense") return "Despesa";
-  return "—";
+function typeLabel(t: TransactionType) {
+  return t === "income" ? "Receita" : "Despesa";
 }
 
 function formatDate(iso: string) {
@@ -301,12 +287,12 @@ async function afterTransactionSave() {
           {{ money.format(t.amount) }}
         </TableCell>
         <TableCell>
-          <span v-if="t.categories" class="inline-flex items-center gap-2">
+          <span v-if="t.category" class="inline-flex items-center gap-2">
             <Icon
-              :name="t.categories.icon"
+              :name="t.category.icon"
               class="text-muted-foreground size-4 shrink-0"
             />
-            {{ t.categories.name }}
+            {{ t.category.name }}
           </span>
           <span v-else class="text-muted-foreground">—</span>
         </TableCell>
