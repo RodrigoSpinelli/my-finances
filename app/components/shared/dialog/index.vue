@@ -64,6 +64,7 @@ const isOpen = defineModel<boolean>();
           :is="formComponents[form]"
           v-bind="formProps ?? {}"
           @submit="handleSubmit"
+          @cancel="isOpen = false"
         />
       </div>
     </Modal.Content>
