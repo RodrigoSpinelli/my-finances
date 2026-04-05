@@ -7,6 +7,9 @@ export default defineNuxtConfig({
   /** SSR + server routes on Cloudflare Pages (Workers). */
   nitro: {
     preset: "cloudflare_pages",
+    routeRules: {
+      "/reset-password": { ssr: false },
+    },
   },
 
   modules: [
@@ -48,7 +51,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
-      exclude: ["/", "/register"],
+      exclude: ["/", "/register", "/recover-password", "/reset-password"],
       saveRedirectToCookie: true,
     },
     types: "~/types/database.types.ts",
