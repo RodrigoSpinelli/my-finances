@@ -2,11 +2,10 @@
 import type { ChartConfig } from "@/components/ui/chart"
 import { CurveType } from "@unovis/ts"
 import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
-import { TrendingDown } from "lucide-vue-next"
+import { ChartLineIcon } from "lucide-vue-next"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -17,7 +16,7 @@ import {
   ChartTooltipContent,
   componentToString,
 } from "@/components/ui/chart"
-import type { ExpenseDailyResponse } from "~/interfaces/dashboard";
+import type { ExpenseDailyResponse } from "~/interfaces/dashboard"
 
 const SLICE_KEY = "expense"
 
@@ -67,33 +66,56 @@ const crosshairTemplate = componentToString(
 </script>
 
 <template>
-  <Card class="flex flex-col">
-    <CardHeader class="gap-1 border-b">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <CardTitle>Análise de gastos</CardTitle>
-        <TrendingDown class="text-muted-foreground size-5 shrink-0" />
+  <Card
+    class="relative flex flex-col overflow-hidden rounded-2xl border-border/50 bg-card/80 shadow-sm ring-1 ring-black/3 backdrop-blur-sm transition-all duration-300 hover:border-border hover:shadow-md dark:bg-card/60 dark:ring-white/6"
+  >
+    <span
+      class="pointer-events-none absolute inset-x-0 top-0 h-2 rounded-t-2xl bg-linear-to-r from-amber-500 via-orange-500 to-rose-500 opacity-95"
+      aria-hidden="true"
+    />
+    <CardHeader
+      class="flex flex-row flex-wrap items-start justify-between gap-3 border-0 pb-2 pt-6"
+    >
+      <div class="min-w-0 space-y-0.5">
+        <CardTitle
+          class="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+        >
+          Análise de gastos
+        </CardTitle>
+        <p class="text-[13px] text-muted-foreground/80">
+          Evolução diária no mês selecionado
+        </p>
       </div>
-      <CardDescription>
-        Evolução dos gastos por dia no mês · Total: {{ monthTotalLabel }}
-      </CardDescription>
+      <div
+        class="shrink-0 rounded-xl bg-amber-500/10 p-2.5 text-amber-600 shadow-inner ring-1 ring-amber-500/15 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-amber-400/20"
+      >
+        <ChartLineIcon class="size-5" stroke-width="2" />
+      </div>
     </CardHeader>
-    <CardContent class="flex flex-1 flex-col pt-4">
+    <CardContent class="flex flex-1 flex-col px-6 pb-2 pt-0">
       <div
         v-if="pending"
-        class="text-muted-foreground flex min-h-[220px] items-center justify-center text-sm"
+        class="flex min-h-[220px] flex-col justify-center gap-3 py-2"
       >
-        Carregando…
+        <Skeleton class="h-32 w-full rounded-xl" />
+        <div class="flex justify-between gap-2">
+          <Skeleton class="h-3 w-16 rounded-md" />
+          <Skeleton class="h-3 w-12 rounded-md" />
+          <Skeleton class="h-3 w-14 rounded-md" />
+        </div>
       </div>
       <div
         v-else-if="!hasExpenses"
-        class="text-muted-foreground flex min-h-[220px] flex-col items-center justify-center gap-1 px-4 text-center text-sm"
+        class="flex min-h-[220px] flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/30 px-4 py-8 text-center"
       >
-        <p>Nenhum gasto registrado neste mês.</p>
-        <p class="text-xs">
+        <p class="text-sm text-muted-foreground">
+          Nenhum gasto registrado neste mês.
+        </p>
+        <p class="mt-2 text-xs text-muted-foreground">
           Registre despesas em
           <NuxtLink
             to="/transactions"
-            class="text-foreground underline-offset-4 hover:underline"
+            class="font-medium text-foreground underline-offset-4 hover:underline"
           >
             transações
           </NuxtLink>

@@ -84,10 +84,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const ranked = [...agg.entries()].sort((a, b) => {
-    const byCount = b[1].transaction_count - a[1].transaction_count
-    if (byCount !== 0)
-      return byCount
-    return b[1].total_amount - a[1].total_amount
+    const byAmount = b[1].total_amount - a[1].total_amount
+    if (byAmount !== 0)
+      return byAmount
+    return b[1].transaction_count - a[1].transaction_count
   })
 
   const ids = ranked.map(([id]) => id)

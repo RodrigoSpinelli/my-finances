@@ -16,13 +16,10 @@ definePageMeta({
   name: "categories",
 });
 
-type CategoryType = Category["type"];
+const isOpenNew = computed(() => useRoute().query.open === "true");
 
-const { start, finish } = useLoadingIndicator();
-
-const { data, refresh, status, pending } = await useFetch<{
-  categories: Category[];
-}>("/api/categories");
+const { getCategories, deleteCategory, clearFilters } = useCategoriesStore();
+const { categories, filter, pending } = storeToRefs(useCategoriesStore());
 
 const headers: TableHeaders[] = [
   { label: "Nome" },
@@ -32,60 +29,14 @@ const headers: TableHeaders[] = [
   { label: "Ações", align: "right" },
 ];
 
-const search = ref("");
-const isOpen = ref(false);
+const isOpen = ref(isOpenNew.value);
 const isOpenAlert = ref(false);
 const categorySelected = ref<Category | null>(null);
 const dialogId = ref<string | undefined>(undefined);
 
-const categories = computed(() => data.value?.categories ?? []);
-
-function typeLabel(t: CategoryType) {
+function typeLabel(t: TransactionType) {
   return t === "income" ? "Receita" : "Despesa";
 }
-
-const filteredCategories = computed(() => {
-  const q = search.value.trim().toLowerCase();
-  if (!q) return categories.value;
-  return categories.value.filter((c) => {
-    const haystack = [c.name, typeLabel(c.type), c.icon, c.color]
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(q);
-  });
-});
-
-const deleteCategory = async () => {
-  if (!categorySelected.value)
-    useToast({
-      type: "error",
-      title: "Erro",
-      description: "Categoria não selecionada.",
-    });
-  try {
-    start();
-    await $fetch("/api/categories/" + categorySelected.value?.id, {
-      method: "DELETE",
-    });
-    useToast({
-      type: "success",
-      title: "Sucesso",
-      description: "Categoria excluída com sucesso.",
-    });
-    categorySelected.value = null;
-    isOpenAlert.value = false;
-    refresh();
-  } catch (error) {
-    useToast({
-      type: "error",
-      title: "Erro",
-      description:
-        error instanceof Error ? error.message : "Erro ao deletar categoria",
-    });
-  } finally {
-    finish();
-  }
-};
 
 const openDialog = (id?: string) => {
   dialogId.value = id;
@@ -98,6 +49,14 @@ const openAlert = (id: string) => {
     isOpenAlert.value = true;
   }
 };
+
+onMounted(() => {
+  getCategories();
+});
+
+onUnmounted(() => {
+  clearFilters();
+});
 </script>
 
 <template>
@@ -109,25 +68,38 @@ const openAlert = (id: string) => {
       </p>
     </header>
 
-    <div class="flex items-center justify-between">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+    >
       <shared-input
-        v-model="search"
+        v-model="filter.search"
         placeholder="Pesquisar categoria"
         type="search"
         icon="lucide:search"
-        class="w-full max-w-xs"
+        class="w-full sm:max-w-xs"
       />
-      <div class="flex items-center gap-2">
-        <Button type="button" variant="outline" size="sm" @click="refresh">
+      <div class="flex items-center space-x-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          @click="getCategories"
+          :disabled="pending"
+          class="flex-1 sm:flex-none"
+        >
           <Icon
             name="lucide:refresh-cw"
-            :class="{ 'animate-spin': status === 'pending' }"
+            :class="{ 'animate-spin': pending }"
           />
-          {{ status === "pending" ? "Carregando..." : "Atualizar" }}
         </Button>
-        <Button type="button" variant="default" size="sm" @click="openDialog()">
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          @click="openDialog()"
+          class="flex-1 sm:flex-none"
+        >
           <Icon name="lucide:plus" />
-          Nova categoria
         </Button>
       </div>
     </div>
@@ -138,9 +110,9 @@ const openAlert = (id: string) => {
       <shared-table
         :headers="headers"
         :is-loading="pending"
-        :length="filteredCategories.length"
+        :length="categories.length"
       >
-        <TableRow v-for="c in filteredCategories" :key="c.id">
+        <TableRow v-for="c in categories" :key="c.id">
           <TableCell class="font-medium">{{ c.name }}</TableCell>
           <TableCell>
             <span
@@ -165,7 +137,7 @@ const openAlert = (id: string) => {
             <shared-color-swatch :color="c.color" />
           </TableCell>
           <TableCell class="text-right">
-            <div class="flex flex-wrap justify-end gap-2">
+            <div class="flex items-center space-x-2">
               <Button
                 type="button"
                 variant="ghost"
@@ -194,13 +166,13 @@ const openAlert = (id: string) => {
       title="Nova categoria"
       form="category"
       :form-props="{ id: dialogId }"
-      @submit="refresh"
+      @submit="getCategories"
     />
     <shared-dialog-alert
       v-model="isOpenAlert"
       :title="`Tem certeza que deseja excluir a categoria ${categorySelected?.name.toUpperCase()}?`"
       description="Esta ação não pode ser desfeita. A categoria será removida permanentemente."
-      @confirm="deleteCategory"
+      @confirm="deleteCategory(categorySelected as Category)"
     />
   </div>
 </template>

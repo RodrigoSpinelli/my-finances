@@ -1,16 +1,12 @@
 <script setup lang="ts">
+import { CalendarArrowDownIcon, WalletIcon } from "lucide-vue-next";
 import type { DashboardBalance } from "~/interfaces/balance";
-import type { Category } from "~/interfaces/category";
 import type { GoalPayload } from "~/interfaces/goal";
 import type {
   ExpenseDailyResponse,
   MonthFlowResponse,
   CategoryData,
 } from "~/interfaces/dashboard";
-
-const { data, refresh } = await useFetch<{ categories: Category[] }>(
-  "/api/categories",
-);
 
 definePageMeta({
   name: "dashboard",
@@ -20,7 +16,10 @@ useHead({
   title: "Dashboard",
 });
 
-const isOpen = computed(() => (data.value?.categories?.length ?? 0) === 0);
+const { categories } = storeToRefs(useCategoriesStore());
+const { getCategories } = useCategoriesStore();
+
+const isOpen = ref(categories.value.length === 0);
 
 const user = useSupabaseUser();
 
@@ -71,6 +70,10 @@ const {
   watch: [month],
 });
 
+const monthExpenseTotal = computed(
+  () => expenseDailyData.value?.month_total ?? 0,
+)
+
 const getAll = async () => {
   await Promise.all([
     balanceRefresh(),
@@ -80,17 +83,23 @@ const getAll = async () => {
     categoriesRefresh(),
   ]);
 };
+
+onMounted(() => {
+  getCategories();
+});
 </script>
 
 <template>
   <div class="mx-auto max-w-7xl space-y-4 p-6">
-    <div class="flex items-center justify-between">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+    >
       <div class="grid gap-4">
         <h1 class="text-2xl font-semibold tracking-tight">
           Bem-vindo(a), {{ user?.user_metadata?.display_name }}!
         </h1>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center space-x-2">
         <shared-drawer
           form="transaction"
           title="Nova despesa"
@@ -106,7 +115,7 @@ const getAll = async () => {
         </shared-drawer>
         <NativeSelect
           v-model="month"
-          class="w-[min(100%,220px)] shrink-0"
+          class="flex-1 sm:w-[min(100%,220px)] shrink-0"
           aria-label="Mês de referência"
         >
           <NativeSelectOption
@@ -119,40 +128,54 @@ const getAll = async () => {
         </NativeSelect>
       </div>
     </div>
-    <div class="grid lg:grid-cols-8 sm:grid-cols-4 grid-cols-1 gap-6">
-      <app-dashboard-card-balance
+    <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
+      <app-dashboard-card-balance-stat
         :data="balanceData ?? null"
         :pending="balancePending"
-        class="sm:col-span-2"
+        variant="current"
+        title="Saldo atual"
+        description="Posição consolidada no mês"
+        accent="emerald"
+        :icon="WalletIcon"
+        class="sm:col-span-3"
       />
-      <app-dashboard-card-previous-balance
+      <app-dashboard-card-balance-stat
         :data="balanceData ?? null"
         :pending="balancePending"
-        class="sm:col-span-2"
+        variant="previous"
+        title="Saldo anterior"
+        description="Referência do mês passado"
+        accent="sky"
+        :icon="CalendarArrowDownIcon"
+        class="sm:col-span-3"
       />
-
-      <app-dashboard-card-spending-target
-        :month="month"
-        :pending="goalPending"
-        :data="goalData ?? null"
-        @refresh="refresh"
+      <app-dashboard-card-month-total-expense
+        :pending="expenseDailyPending"
+        :total="monthExpenseTotal"
+        class="sm:col-span-3"
+      />
+      <app-dashboard-chart-categories
+        :pending="categoriesPending"
+        :data="categoriesData ?? null"
         class="lg:col-span-4 sm:col-span-4"
       />
 
       <app-dashboard-chart-analysis
         :pending="expenseDailyPending"
         :data="expenseDailyData ?? null"
-        class="sm:col-span-4"
+        class="sm:col-span-5"
       />
       <app-dashboard-chart-transactions
         :pending="monthFlowPending"
         :data="monthFlowData ?? null"
-        class="lg:col-span-2 sm:col-span-2"
+        class="lg:col-span-3 sm:col-span-3"
       />
-      <app-dashboard-chart-categories
-        :pending="categoriesPending"
-        :data="categoriesData ?? null"
-        class="lg:col-span-2 sm:col-span-2"
+      <app-dashboard-card-spending-target
+        :month="month"
+        :pending="goalPending"
+        :data="goalData ?? null"
+        @refresh="getAll"
+        class="lg:col-span-6 sm:col-span-6"
       />
     </div>
     <shared-dialog
@@ -160,7 +183,7 @@ const getAll = async () => {
       title="Escolha suas primeiras categorias"
       description="Selecione as categorias iniciais que você irá utilizar no seu controle financeiro. Isso ajudará a personalizar sua experiência. Você poderá adicionar ou editar categorias depois, se quiser."
       form="firstCategories"
-      @submit="refresh"
+      @submit="getCategories"
     />
   </div>
 </template>
