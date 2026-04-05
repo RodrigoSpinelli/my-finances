@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { WalletIcon, WalletMinimalIcon } from "lucide-vue-next";
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { GoalPayload } from "~/interfaces/goal";
 import type {
@@ -69,6 +70,10 @@ const {
   watch: [month],
 });
 
+const monthExpenseTotal = computed(
+  () => expenseDailyData.value?.month_total ?? 0,
+)
+
 const getAll = async () => {
   await Promise.all([
     balanceRefresh(),
@@ -123,40 +128,54 @@ onMounted(() => {
         </NativeSelect>
       </div>
     </div>
-    <div class="grid lg:grid-cols-8 sm:grid-cols-4 grid-cols-1 gap-6">
-      <app-dashboard-card-balance
+    <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
+      <app-dashboard-card-balance-stat
         :data="balanceData ?? null"
         :pending="balancePending"
-        class="sm:col-span-2"
+        variant="current"
+        title="Saldo atual"
+        description="Posição consolidada no mês"
+        accent="emerald"
+        :icon="WalletIcon"
+        class="sm:col-span-3"
       />
-      <app-dashboard-card-previous-balance
+      <app-dashboard-card-balance-stat
         :data="balanceData ?? null"
         :pending="balancePending"
-        class="sm:col-span-2"
+        variant="previous"
+        title="Saldo anterior"
+        description="Referência do mês passado"
+        accent="sky"
+        :icon="WalletMinimalIcon"
+        class="sm:col-span-3"
       />
-
-      <app-dashboard-card-spending-target
-        :month="month"
-        :pending="goalPending"
-        :data="goalData ?? null"
-        @refresh="getAll"
+      <app-dashboard-card-month-total-expense
+        :pending="expenseDailyPending"
+        :total="monthExpenseTotal"
+        class="sm:col-span-3"
+      />
+      <app-dashboard-chart-categories
+        :pending="categoriesPending"
+        :data="categoriesData ?? null"
         class="lg:col-span-4 sm:col-span-4"
       />
 
       <app-dashboard-chart-analysis
         :pending="expenseDailyPending"
         :data="expenseDailyData ?? null"
-        class="sm:col-span-4"
+        class="sm:col-span-5"
       />
       <app-dashboard-chart-transactions
         :pending="monthFlowPending"
         :data="monthFlowData ?? null"
-        class="lg:col-span-2 sm:col-span-2"
+        class="lg:col-span-3 sm:col-span-3"
       />
-      <app-dashboard-chart-categories
-        :pending="categoriesPending"
-        :data="categoriesData ?? null"
-        class="lg:col-span-2 sm:col-span-2"
+      <app-dashboard-card-spending-target
+        :month="month"
+        :pending="goalPending"
+        :data="goalData ?? null"
+        @refresh="getAll"
+        class="lg:col-span-6 sm:col-span-6"
       />
     </div>
     <shared-dialog
