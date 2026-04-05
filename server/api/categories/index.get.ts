@@ -29,6 +29,20 @@ export default defineEventHandler(async (event) => {
   }
 
   const client = await serverSupabaseClient(event)
+  // Busca todas as categorias desse usuário para contar o total independente do filtro de type
+  const { count: total, error: countError } = await client
+    .from("categories")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+
+  if (countError) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: countError.message,
+    })
+  }
+
+  // Aplica o filtro de type (se houver) para retornar apenas categorias filtradas
   let q = client
     .from("categories")
     .select("*, icons(name), colors(name)")
@@ -51,5 +65,5 @@ export default defineEventHandler(async (event) => {
     flattenCategoryIcon(row as CategoryRowWithIconJoin),
   )
 
-  return { categories }
+  return { categories, total }
 })
