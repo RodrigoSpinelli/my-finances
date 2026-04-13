@@ -118,3 +118,53 @@
     @apply bg-background text-foreground;
   }
 }
+
+/**
+ * Scrollbar fina, arredondada, alinhada ao accent do card (fuchsia / rosa).
+ * Firefox: scrollbar-color; WebKit: pseudo-elementos.
+ */
+@layer utilities {
+  .scrollbar-dashboard-categories {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, oklch(0.55 0.22 330) 45%, transparent)
+      transparent;
+  }
+
+  .dark .scrollbar-dashboard-categories {
+    scrollbar-color: color-mix(in oklch, oklch(0.72 0.18 330) 55%, transparent)
+      transparent;
+  }
+
+  .scrollbar-dashboard-categories::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  .scrollbar-dashboard-categories::-webkit-scrollbar-track {
+    margin-block: 6px;
+    background: transparent;
+    border-radius: 9999px;
+  }
+
+  .scrollbar-dashboard-categories::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: color-mix(in oklch, oklch(0.55 0.22 330) 40%, transparent);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .scrollbar-dashboard-categories::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, oklch(0.5 0.24 330) 65%, transparent);
+    background-clip: padding-box;
+  }
+
+  .dark .scrollbar-dashboard-categories::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, oklch(0.72 0.18 330) 35%, transparent);
+    background-clip: padding-box;
+  }
+
+  .dark .scrollbar-dashboard-categories::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, oklch(0.78 0.16 330) 55%, transparent);
+    background-clip: padding-box;
+  }
+}
