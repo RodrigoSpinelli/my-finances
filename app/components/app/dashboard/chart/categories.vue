@@ -60,7 +60,7 @@ const hasItems = computed(() => items.value.length > 0);
       </div>
       <div
         v-else-if="hasItems"
-        class="max-h-[min(400px,50vh)] space-y-3 overflow-y-auto pr-1"
+        class="scrollbar-dashboard-categories max-h-[min(400px,50vh)] space-y-3 overflow-y-auto scroll-smooth pr-1"
       >
         <shared-tooltip
           v-for="category in items"

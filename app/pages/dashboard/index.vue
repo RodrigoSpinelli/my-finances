@@ -19,7 +19,8 @@ useHead({
 const { categories } = storeToRefs(useCategoriesStore());
 const { getCategories } = useCategoriesStore();
 
-const isOpen = ref(categories.value.length === 0);
+/** Só abre após carregar a API: a store começa vazia e senão o modal ficaria aberto mesmo com categorias. */
+const isOpen = ref(false);
 
 const user = useSupabaseUser();
 
@@ -84,8 +85,11 @@ const getAll = async () => {
   ]);
 };
 
-onMounted(() => {
-  getCategories();
+onMounted(async () => {
+  await getCategories();
+  if (categories.value.length === 0) {
+    isOpen.value = true;
+  }
 });
 </script>
 
