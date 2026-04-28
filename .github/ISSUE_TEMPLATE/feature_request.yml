@@ -1,0 +1,50 @@
+name: "✨ Feature request"
+description: Sugerir uma nova funcionalidade ou melhoria visível para o usuário.
+title: "feat: <descreva a feature em poucas palavras>"
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema / motivação
+      description: Qual dor essa feature resolve? Qual é o valor para o usuário?
+      placeholder: Hoje não consigo filtrar transações por categoria, o que dificulta a análise mensal.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+      description: Como você imagina a solução? Pode ser texto, fluxo, mockup.
+      placeholder: Adicionar um seletor de categoria no topo da lista de transações.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: O que precisa estar funcionando para considerar a feature pronta?
+      value: |
+        - [ ] Critério 1
+        - [ ] Critério 2
+        - [ ] Critério 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Outras soluções que você pensou, e por que descartou.
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notas técnicas (opcional)
+      description: Tabelas afetadas, endpoints, dependências, etc.
+    validations:
+      required: false
