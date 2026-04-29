@@ -17,6 +17,7 @@ definePageMeta({
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const redirectInfo = useSupabaseCookieRedirect();
+const { origin } = useRequestURL();
 
 const displayName = ref("");
 const email = ref("");
@@ -65,19 +66,14 @@ async function onSubmit() {
   }
 
   loading.value = true;
-  const redirectTo =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/confirm`
-      : undefined;
+  const redirectTo = origin ? `${origin}/confirm` : undefined;
 
   const { data, error } = await supabase.auth.signUp({
     email: email.value.trim(),
     password: password.value,
     options: {
       ...(redirectTo ? { emailRedirectTo: redirectTo } : {}),
-      data: {
-        display_name: name,
-      },
+      data: { display_name: name },
     },
   });
   loading.value = false;
@@ -182,9 +178,7 @@ async function onSubmit() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter
-        class="border-border/60 flex flex-col gap-4 border-t py-6"
-      >
+      <CardFooter class="border-border/60 flex flex-col gap-4 border-t py-6">
         <p class="text-muted-foreground text-center text-sm">
           Já tem conta?
           <NuxtLink
