@@ -17,7 +17,7 @@ definePageMeta({
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const redirectInfo = useSupabaseCookieRedirect();
-const { origin } = useRequestURL();
+const { resolveSiteOrigin } = useSiteOrigin();
 
 const displayName = ref("");
 const email = ref("");
@@ -66,6 +66,7 @@ async function onSubmit() {
   }
 
   loading.value = true;
+  const origin = resolveSiteOrigin();
   const redirectTo = origin ? `${origin}/confirm` : undefined;
 
   const { data, error } = await supabase.auth.signUp({
