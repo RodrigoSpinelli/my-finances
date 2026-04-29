@@ -1,0 +1,32 @@
+name: "🧹 Refactor / Chore"
+description: Melhoria interna, refatoração ou tarefa de manutenção sem mudança de comportamento.
+title: "refactor: <descreva a mudança em poucas palavras>"
+labels: ["refactor"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto
+      description: O que existe hoje? Qual é o problema do código atual?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+      description: O que você quer mudar e por quê?
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impacto / risco
+      description: Que partes do app podem ser afetadas? Há risco de regressão?
+      value: |
+        - Áreas afetadas:
+        - Risco (baixo / médio / alto):
+        - Plano de validação:
+    validations:
+      required: false

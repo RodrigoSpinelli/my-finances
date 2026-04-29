@@ -1,0 +1,13 @@
+# CODEOWNERS — define revisores automáticos para arquivos / pastas.
+# Documentação: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+#
+# Sintaxe: <padrão de arquivo>  <@usuario-ou-time>
+# O dono é solicitado automaticamente para review quando arquivos casam com o padrão.
+
+# Dono padrão de qualquer mudança no repositório.
+*           @RodrigoSpinelli
+
+# Exemplos para quando o time crescer (descomente e ajuste):
+# /app/components/  @RodrigoSpinelli @colaborador-github
+# /supabase/        @RodrigoSpinelli
+# /.github/         @RodrigoSpinelli
