@@ -17,6 +17,7 @@ definePageMeta({
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const redirectInfo = useSupabaseCookieRedirect();
+const { resolveSiteOrigin } = useSiteOrigin();
 
 const email = ref("");
 const loading = ref(false);
@@ -44,10 +45,8 @@ async function onSubmit() {
   }
 
   loading.value = true;
-  const redirectTo =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/reset-password`
-      : undefined;
+  const origin = resolveSiteOrigin();
+  const redirectTo = origin ? `${origin}/reset-password` : undefined;
 
   const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
     ...(redirectTo ? { redirectTo } : {}),
