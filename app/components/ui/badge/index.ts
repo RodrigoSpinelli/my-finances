@@ -25,6 +25,12 @@ export const badgeVariants = cva(
         gray: "border border-gray-400 bg-gray-300 text-gray-900 hover:bg-gray-400 [a&]:hover:bg-gray-400 dark:bg-gray-400/80 dark:border-gray-600/60",
         green:
           "border border-green-500 bg-green-500 text-white hover:bg-green-600 [a&]:hover:bg-green-600 dark:bg-green-500/80 dark:border-green-600/60",
+        emerald:
+          "border border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600 [a&]:hover:bg-emerald-600 dark:bg-emerald-500/80 dark:border-emerald-600/60",
+        amber:
+          "border border-amber-500 bg-amber-500 text-white hover:bg-amber-600 [a&]:hover:bg-amber-600 dark:bg-amber-500/80 dark:border-amber-600/60",
+        indigo:
+          "border border-indigo-500 bg-indigo-500 text-white hover:bg-indigo-600 [a&]:hover:bg-indigo-600 dark:bg-indigo-500/80 dark:border-indigo-600/60",
         'green-light':
           "border border-green-300 bg-green-100 text-green-800 hover:bg-green-200 [a&]:hover:bg-green-200 dark:bg-green-300/30 dark:border-green-400/50 dark:text-green-100",
         'red-light':

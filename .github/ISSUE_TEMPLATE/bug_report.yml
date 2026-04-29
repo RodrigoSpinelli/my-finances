@@ -1,0 +1,60 @@
+name: "🐛 Bug report"
+description: Reportar um comportamento inesperado ou erro no app.
+title: "fix: <descreva o bug em poucas palavras>"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar! Preencha as seções abaixo com o máximo de contexto possível.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do bug
+      description: O que está acontecendo? O que você esperava que acontecesse?
+      placeholder: Ao clicar em "Salvar transação" o app trava e não exibe erro.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      description: Liste os passos exatos para reproduzir o problema.
+      value: |
+        1. Acessar `/dashboard`
+        2. Clicar em "Nova transação"
+        3. Preencher os campos
+        4. Clicar em "Salvar"
+        5. Ver o erro
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+      placeholder: A transação deveria ser salva e aparecer na lista.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Onde o bug ocorre?
+      value: |
+        - SO:
+        - Navegador / versão:
+        - Branch / ambiente (develop / staging / main):
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / logs
+      description: Cole prints, vídeos ou logs do console se ajudarem.
+    validations:
+      required: false
