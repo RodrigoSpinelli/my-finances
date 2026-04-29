@@ -123,6 +123,7 @@ export type Database = {
       monthly_goals: {
         Row: {
           amount: number
+          category_id: string | null
           created_at: string
           id: string
           month: number | null
@@ -131,6 +132,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          category_id?: string | null
           created_at?: string
           id?: string
           month?: number | null
@@ -139,13 +141,22 @@ export type Database = {
         }
         Update: {
           amount?: number
+          category_id?: string | null
           created_at?: string
           id?: string
           month?: number | null
           user_id?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "monthly_goals_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -155,6 +166,7 @@ export type Database = {
           date: string
           description: string | null
           id: string
+          merchant: string | null
           type: Database["public"]["Enums"]["transaction_type"]
           user_id: string
         }
@@ -165,6 +177,7 @@ export type Database = {
           date: string
           description?: string | null
           id?: string
+          merchant?: string | null
           type: Database["public"]["Enums"]["transaction_type"]
           user_id: string
         }
@@ -175,6 +188,7 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
+          merchant?: string | null
           type?: Database["public"]["Enums"]["transaction_type"]
           user_id?: string
         }
