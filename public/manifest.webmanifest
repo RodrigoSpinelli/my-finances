@@ -1,0 +1,20 @@
+{
+  "name": "My Finances",
+  "short_name": "My Finances",
+  "display": "standalone",
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "2000x2000",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "type": "image/x-icon",
+      "sizes": "48x48"
+    }
+  ]
+}
