@@ -16,11 +16,44 @@ useHead({
   title: "Dashboard",
 });
 
+const route = useRoute();
+const router = useRouter();
+
 const { categories } = storeToRefs(useCategoriesStore());
 const { getCategories } = useCategoriesStore();
 
+/** Drawer "Nova transação" — pode ser aberto pela query `?newexpense=true`. */
+const transactionDrawerOpen = ref(false);
+
 /** Só abre após carregar a API: a store começa vazia e senão o modal ficaria aberto mesmo com categorias. */
 const isOpen = ref(false);
+
+function isNewExpenseQueryTrue(
+  q: typeof route.query,
+): boolean {
+  const raw = q.newexpense;
+  if (raw === undefined) return false;
+  const s = (Array.isArray(raw) ? raw[0] : raw) ?? "";
+  return (
+    s === "true" || s === "1" || s === ""
+  );
+}
+
+function stripNewExpenseFromUrl() {
+  if (!("newexpense" in route.query)) return;
+  const rest = { ...route.query };
+  delete rest.newexpense;
+  router.replace({ path: route.path, query: rest });
+}
+
+/** Abre o drawer de despesa quando houver categorias e a query solicitar (`/dashboard?newexpense=true`). */
+async function maybeOpenExpenseDrawerFromQuery() {
+  await getCategories();
+  if (!isNewExpenseQueryTrue(route.query)) return;
+  if (categories.value.length === 0) return;
+  transactionDrawerOpen.value = true;
+  stripNewExpenseFromUrl();
+}
 
 const user = useSupabaseUser();
 
@@ -89,6 +122,8 @@ onMounted(async () => {
   await getCategories();
   if (categories.value.length === 0) {
     isOpen.value = true;
+  } else {
+    await maybeOpenExpenseDrawerFromQuery();
   }
 });
 </script>
@@ -105,6 +140,7 @@ onMounted(async () => {
       </div>
       <div class="flex items-center space-x-2">
         <shared-drawer
+          v-model="transactionDrawerOpen"
           form="transaction"
           title="Nova despesa"
           description="Registre uma nova despesa"
@@ -187,7 +223,7 @@ onMounted(async () => {
       title="Escolha suas primeiras categorias"
       description="Selecione as categorias iniciais que você irá utilizar no seu controle financeiro. Isso ajudará a personalizar sua experiência. Você poderá adicionar ou editar categorias depois, se quiser."
       form="firstCategories"
-      @submit="getCategories"
+      @submit="maybeOpenExpenseDrawerFromQuery"
     />
   </div>
 </template>
