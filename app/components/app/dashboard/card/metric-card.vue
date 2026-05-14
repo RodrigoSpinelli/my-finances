@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Component } from "vue"
-import type { DashboardBalance } from "~/interfaces/balance"
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next"
 import { cn } from "@/lib/utils"
 
@@ -15,20 +14,30 @@ const ACCENT = {
     iconBox:
       "rounded-xl bg-sky-500/10 p-2.5 text-sky-600 shadow-inner ring-1 ring-sky-500/15 dark:bg-sky-400/10 dark:text-sky-400 dark:ring-sky-400/20",
   },
+  teal: {
+    bar: "bg-linear-to-r from-teal-500 via-emerald-500 to-cyan-600",
+    iconBox:
+      "rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 shadow-inner ring-1 ring-emerald-500/15 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/20",
+  },
+  rose: {
+    bar: "bg-linear-to-r from-rose-600 via-red-500 to-red-700",
+    iconBox:
+      "rounded-xl bg-red-500/10 p-2.5 text-red-600 shadow-inner ring-1 ring-red-500/15 dark:bg-red-400/10 dark:text-red-400 dark:ring-red-400/20",
+  },
 } as const
 
 type AccentKey = keyof typeof ACCENT
 
-const props = defineProps<{
-  data: DashboardBalance | null
+defineProps<{
   pending: boolean
   title: string
   description: string
-  /** Cor do degradê superior e do bloco do ícone */
   accent: AccentKey
   icon: Component
-  /** Qual par de campos de `data` exibir */
-  variant: "current" | "previous"
+  /** Valor exibido (moeda) */
+  amount: number
+  /** Quando não for `null`, exibe o distintivo de variação percentual */
+  changePercent?: number | null
 }>()
 
 const { money } = useCurrencyFormat()
@@ -43,16 +52,6 @@ function formatPct(value: number | null): string {
   if (value === null) return "—"
   return pct.format(value / 100)
 }
-
-const amount = computed(() => {
-  if (props.variant === "current") return props.data?.current_balance ?? 0
-  return props.data?.previous_balance ?? 0
-})
-
-const changePercent = computed(() => {
-  if (props.variant === "current") return props.data?.current_change_percent
-  return props.data?.previous_change_percent
-})
 </script>
 
 <template>

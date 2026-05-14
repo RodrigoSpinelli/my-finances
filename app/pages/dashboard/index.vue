@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { CalendarArrowDownIcon, WalletIcon } from "lucide-vue-next";
+import {
+  CalendarArrowDownIcon,
+  LayersIcon,
+  ReceiptTextIcon,
+  WalletIcon,
+} from "lucide-vue-next";
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { GoalPayload } from "~/interfaces/goal";
 import type {
@@ -28,15 +33,11 @@ const transactionDrawerOpen = ref(false);
 /** Só abre após carregar a API: a store começa vazia e senão o modal ficaria aberto mesmo com categorias. */
 const isOpen = ref(false);
 
-function isNewExpenseQueryTrue(
-  q: typeof route.query,
-): boolean {
+function isNewExpenseQueryTrue(q: typeof route.query): boolean {
   const raw = q.newexpense;
   if (raw === undefined) return false;
   const s = (Array.isArray(raw) ? raw[0] : raw) ?? "";
-  return (
-    s === "true" || s === "1" || s === ""
-  );
+  return s === "true" || s === "1" || s === "";
 }
 
 function stripNewExpenseFromUrl() {
@@ -106,7 +107,7 @@ const {
 
 const monthExpenseTotal = computed(
   () => expenseDailyData.value?.month_total ?? 0,
-)
+);
 
 const getAll = async () => {
   await Promise.all([
@@ -129,7 +130,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl space-y-4 p-6">
+  <div class="mx-auto space-y-4 px-36 py-6">
     <div
       class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
     >
@@ -168,32 +169,45 @@ onMounted(async () => {
         </NativeSelect>
       </div>
     </div>
-    <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
-      <app-dashboard-card-balance-stat
-        :data="balanceData ?? null"
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      <app-dashboard-card-metric-card
         :pending="balancePending"
-        variant="current"
         title="Saldo atual"
-        description="Posição consolidada no mês"
+        description="Líquido do mês (entradas − saídas)"
         accent="emerald"
         :icon="WalletIcon"
-        class="sm:col-span-3"
+        :amount="balanceData?.month_balance ?? 0"
+        :change-percent="balanceData?.month_change_percent ?? null"
       />
-      <app-dashboard-card-balance-stat
-        :data="balanceData ?? null"
+      <app-dashboard-card-metric-card
+        :pending="expenseDailyPending"
+        title="Gasto total do mês"
+        description="Soma de todas as despesas no período"
+        accent="rose"
+        :icon="ReceiptTextIcon"
+        :amount="monthExpenseTotal"
+      />
+      <app-dashboard-card-metric-card
         :pending="balancePending"
-        variant="previous"
         title="Saldo anterior"
-        description="Referência do mês passado"
+        description="Líquido do mês anterior (o que sobrou naquele mês)"
         accent="sky"
         :icon="CalendarArrowDownIcon"
-        class="sm:col-span-3"
+        :amount="balanceData?.previous_month_balance ?? 0"
+        :change-percent="balanceData?.previous_month_change_percent ?? null"
       />
-      <app-dashboard-card-month-total-expense
-        :pending="expenseDailyPending"
-        :total="monthExpenseTotal"
-        class="sm:col-span-3"
+      <app-dashboard-card-metric-card
+        :pending="balancePending"
+        title="Saldo acumulado"
+        description="Patrimônio líquido até o fim do mês selecionado"
+        accent="teal"
+        :icon="LayersIcon"
+        :amount="balanceData?.accumulated_balance ?? 0"
+        :change-percent="balanceData?.accumulated_change_percent ?? null"
       />
+      
+    </div>
+    <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
       <app-dashboard-chart-categories
         :pending="categoriesPending"
         :data="categoriesData ?? null"
