@@ -23,7 +23,7 @@ const PRESETS = {
     iconClass: "size-6 shrink-0 sm:size-7",
     ariaLabel: "Ir para início",
     linkClass:
-      "flex shrink-0 items-center rounded-md outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring",
+      "flex shrink-0 items-center rounded-md outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring",
   },
   "auth-nav": {
     defaultTo: "/",
@@ -31,7 +31,7 @@ const PRESETS = {
     iconClass: "size-8 shrink-0 sm:size-9",
     ariaLabel: `${BRAND_NAME} — voltar ao início`,
     linkClass:
-      "flex min-w-0 items-center gap-2 rounded-lg outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring",
+      "flex min-w-0 items-center gap-2 rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring",
     labelClass:
       "text-foreground truncate text-sm font-semibold tracking-tight sm:text-base",
   },
@@ -41,7 +41,7 @@ const PRESETS = {
     iconClass: "size-7 shrink-0 sm:size-8",
     ariaLabel: `${BRAND_NAME} — início`,
     linkClass:
-      "flex items-center gap-2 rounded-md outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring",
+      "flex items-center gap-2 rounded-md outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring",
     labelClass:
       "text-foreground text-sm font-semibold tracking-tight sm:text-base",
   },
@@ -51,7 +51,7 @@ const PRESETS = {
     iconClass: "size-5 shrink-0 sm:size-6",
     ariaLabel: `${BRAND_NAME} — início`,
     linkClass:
-      "inline-flex items-center gap-2 rounded-md text-inherit outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring",
+      "inline-flex items-center gap-2 rounded-md text-inherit outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring",
     labelClass: "text-foreground font-semibold",
   },
 } satisfies Record<LogoLinkVariant, Preset>;

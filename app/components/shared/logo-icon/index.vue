@@ -14,7 +14,9 @@ const strokePaint = `url(#${gradientId})`;
 </script>
 
 <template>
-  <span class="inline-flex shrink-0 opacity-95">
+  <span
+    class="logo-icon-hit inline-flex shrink-0 opacity-90 transition-opacity duration-150 ease-in-out hover:opacity-100 motion-reduce:transition-none motion-reduce:hover:opacity-90"
+  >
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
@@ -30,14 +32,18 @@ const strokePaint = `url(#${gradientId})`;
       <defs>
         <linearGradient
           :id="gradientId"
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="0%"
+          class="logo-grad-spin"
+          gradientUnits="userSpaceOnUse"
+          x1="0"
+          y1="12"
+          x2="24"
+          y2="12"
         >
-          <stop offset="0%" stop-color="#8b5cf6" />
-          <stop offset="50%" stop-color="#a855f7" />
-          <stop offset="100%" stop-color="#d946ef" />
+          <stop offset="0%" stop-color="#6d28d9" />
+          <stop offset="22%" stop-color="#8b5cf6" />
+          <stop offset="45%" stop-color="#c026d3" />
+          <stop offset="68%" stop-color="#d946ef" />
+          <stop offset="100%" stop-color="#6d28d9" />
         </linearGradient>
       </defs>
       <path d="M11 17h3v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a3.16 3.16 0 0 0 2-2h1a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-1a5 5 0 0 0-2-4V3a4 4 0 0 0-3.2 1.6l-.3.4H11a6 6 0 0 0-6 6v1a5 5 0 0 0 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1z" />
@@ -46,3 +52,22 @@ const strokePaint = `url(#${gradientId})`;
     </svg>
   </span>
 </template>
+
+<style scoped>
+.logo-grad-spin {
+  transform-origin: 12px 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Somente quando o hover está sobre o ícone — não pelo texto ao lado no link */
+  .logo-icon-hit:hover .logo-grad-spin {
+    animation: pf-logo-grad-flow 2.6s linear infinite;
+  }
+}
+
+@keyframes pf-logo-grad-flow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
