@@ -1,6 +1,7 @@
 import { serverSupabaseClient } from "#supabase/server"
 import type { H3Event } from "h3"
 import type { Tables } from "~/types/database.types"
+import { monthDateBounds } from "./month-bounds"
 
 type TxRow = Tables<"transactions">
 type CategoryBrief = Pick<
@@ -51,6 +52,8 @@ export type ListTransactionsPaginatedResult = {
 
 export type TransactionListFilters = {
   date?: string
+  /** Intervalo inclusivo (`YYYY-MM` → primeiro e último dia do mês). */
+  month?: string
   type?: Tables<"transactions">["type"]
   categoryId?: string
 }
@@ -75,6 +78,10 @@ export async function listTransactionsWithCategoriesPaginated(
     .order("date", { ascending: false })
     .order("created_at", { ascending: false })
 
+  if (filters?.month) {
+    const { start, end } = monthDateBounds(filters.month)
+    qb = qb.gte("date", start).lte("date", end)
+  }
   if (filters?.date) {
     qb = qb.eq("date", filters.date)
   }
