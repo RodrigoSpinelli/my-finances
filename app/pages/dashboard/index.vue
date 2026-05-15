@@ -198,14 +198,20 @@ onMounted(async () => {
       <app-dashboard-chart-analysis
         :pending="expenseDailyPending"
         :data="expenseDailyData ?? null"
-        class="sm:col-span-5"
+        class="lg:col-span-5 sm:col-span-5"
+      />
+      <app-dashboard-expense-calendar
+        :month="month"
+        :daily="expenseDailyData?.daily ?? []"
+        :pending="expenseDailyPending"
+        class="lg:col-span-4 sm:col-span-4"
       />
       <app-dashboard-card-spending-target
         :month="month"
         :pending="goalPending"
         :data="goalData ?? null"
         @refresh="getAll"
-        class="lg:col-span-9 sm:col-span-4"
+        class="lg:col-span-5 sm:col-span-4"
       />
     </div>
     <shared-dialog
