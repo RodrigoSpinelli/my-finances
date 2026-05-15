@@ -189,7 +189,10 @@ onMounted(async () => {
         footer-label="Despesas no mês anterior"
         :footer-amount="expenseDailyData?.previous_month_total ?? 0"
       />
-      <app-dashboard-chart-bar />
+      <app-dashboard-chart-bar
+        :pending="monthFlowPending"
+        :data="monthFlowData ?? null"
+      />
     </div>
     <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
       <app-dashboard-chart-categories

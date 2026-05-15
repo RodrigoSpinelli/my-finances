@@ -1,75 +1,47 @@
 <script setup lang="ts">
-import type {
-  ChartConfig,
-} from "@/components/ui/chart"
-import { cn } from "@/lib/utils"
-import { Orientation } from "@unovis/ts"
-import { VisAxis, VisGroupedBar, VisXYContainer } from "@unovis/vue"
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartContainer,
-  ChartCrosshair,
-  ChartTooltip,
-  ChartTooltipContent,
-  componentToString,
-} from "@/components/ui/chart"
-import { BarChartIcon } from "lucide-vue-next"
+} from "@/components/ui/card";
+import { ArrowDownUpIcon } from "lucide-vue-next";
+import type { MonthFlowResponse } from "~/interfaces/dashboard";
 
-const chartData = [
-  { date: new Date("2024-01-01"), desktop: 186 },
-  { date: new Date("2024-02-01"), desktop: 305 }
-]
+const { pending, data } = defineProps<{
+  pending: boolean;
+  data: MonthFlowResponse | null;
+}>();
 
-type Data = typeof chartData[number]
+const entradaTotal = computed(() => Math.max(0, data?.income_total ?? 0));
+const saidaTotal = computed(() => Math.max(0, data?.expense_total ?? 0));
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-2)",
-  },
-} satisfies ChartConfig
+const chartMaxValue = computed(() => {
+  const peak = Math.max(entradaTotal.value, saidaTotal.value, 1);
+  return peak * 1.08;
+});
 
-const ACCENT = {
-  default: {
-    bar: "bg-linear-to-r from-gray-500 via-gray-600 to-gray-700",
-    iconBox:
-      "rounded-xl bg-gray-500/10 p-2.5 text-gray-600 shadow-inner ring-1 ring-gray-500/15 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20",
-  },
-  emerald: {
-    bar: "bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500",
-    iconBox:
-      "rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 shadow-inner ring-1 ring-emerald-500/15 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/20",
-  },
-  sky: {
-    bar: "bg-linear-to-r from-sky-500 via-blue-500 to-indigo-500",
-    iconBox:
-      "rounded-xl bg-sky-500/10 p-2.5 text-sky-600 shadow-inner ring-1 ring-sky-500/15 dark:bg-sky-400/10 dark:text-sky-400 dark:ring-sky-400/20",
-  },
-  teal: {
-    bar: "bg-linear-to-r from-teal-500 via-emerald-500 to-cyan-600",
-    iconBox:
-      "rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 shadow-inner ring-1 ring-emerald-500/15 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/20",
-  },
-  rose: {
-    bar: "bg-linear-to-r from-rose-600 via-red-500 to-red-700",
-    iconBox:
-      "rounded-xl bg-red-500/10 p-2.5 text-red-600 shadow-inner ring-1 ring-red-500/15 dark:bg-red-400/10 dark:text-red-400 dark:ring-red-400/20",
-  },
-} as const
+const hasMovement = computed(
+  () => entradaTotal.value > 0 || saidaTotal.value > 0,
+);
+
+function barWidthPct(amount: number) {
+  const m = chartMaxValue.value;
+  if (m <= 0)
+    return 0;
+  return Math.min(100, (amount / m) * 100);
+}
+
+const entradaWidth = computed(() => barWidthPct(entradaTotal.value));
+const saidaWidth = computed(() => barWidthPct(saidaTotal.value));
 </script>
 
 <template>
-  <Card class="group relative min-h-[148px] overflow-hidden rounded-2xl border-border/50 bg-card/80 shadow-sm ring-1 ring-black/3 backdrop-blur-sm transition-all duration-300 hover:border-border hover:shadow-md dark:bg-card/60 dark:ring-white/6">
+  <Card
+    class="group relative min-h-[148px] overflow-hidden rounded-2xl border-border/50 bg-card/80 shadow-sm ring-1 ring-black/3 backdrop-blur-sm transition-all duration-300 hover:border-border hover:shadow-md dark:bg-card/60 dark:ring-white/6"
+  >
     <span
-      class="pointer-events-none absolute inset-x-0 top-0 h-2 rounded-t-2xl opacity-95"
-      :class="ACCENT.default.bar"
+      class="pointer-events-none absolute inset-x-0 top-0 h-2 rounded-t-2xl bg-linear-to-r from-emerald-500 via-muted to-rose-500 opacity-95"
       aria-hidden="true"
     />
     <CardHeader
@@ -79,54 +51,87 @@ const ACCENT = {
         <CardTitle
           class="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
         >
-          Categorias mais frequentes
+          Entrada e saída
         </CardTitle>
         <p class="text-[13px] text-muted-foreground/80">
-          Proporção de transações por categoria
+          Proporção de entradas e saídas no mês
         </p>
       </div>
-      <div :class="cn('shrink-0', ACCENT.default.iconBox)">
-        <BarChartIcon class="size-5" :stroke-width="2" />
+      <div
+        class="shrink-0 rounded-xl bg-linear-to-br from-emerald-500/15 to-rose-500/15 p-2.5 text-muted-foreground shadow-inner ring-1 ring-border/50 dark:from-emerald-400/10 dark:to-rose-400/10"
+      >
+        <ArrowDownUpIcon class="size-5" stroke-width="2" />
       </div>
     </CardHeader>
-    <CardContent class="px-6 pb-4 pt-0">
-      <ChartContainer
-        :config="chartConfig"
-        class="aspect-auto h-[104px] w-full max-h-[104px]"
+    <CardContent class="flex flex-col px-6 pb-6 pt-0">
+      <div
+        v-if="pending"
+        class="flex min-h-[120px] flex-col justify-center gap-3 py-2"
       >
-        <VisXYContainer
-          :data="chartData"
-          :margin="{ top: 4, bottom: 4, left: -12, right: 8 }"
-        >
-          <VisGroupedBar
-            :x="(d: Data) => d.date"
-            :y="(d: Data) => d.desktop"
-            :color="chartConfig.desktop.color"
-            :group-max-width="32"
-            :rounded-corners="6"
-            :orientation="Orientation.Horizontal"
-          />
-          <VisAxis
-            type="y"
-            :tick-line="false"
-            :domain-line="false"
-            :grid-line="false"
-            :num-ticks="6"
-            :tick-format="(d: number) => {
-              const date = new Date(d)
-              return date.toLocaleDateString('en-US', {
-                month: 'short',
-              })
-            }"
-            :tick-values="chartData.map(d => d.date)"
-          />
-          <ChartTooltip />
-          <ChartCrosshair
-            :template="componentToString(chartConfig, ChartTooltipContent, { hideLabel: true })"
-            color="#0000"
-          />
-        </VisXYContainer>
-      </ChartContainer>
+        <div class="flex items-center gap-3">
+          <Skeleton class="h-8 w-7 shrink-0 rounded-md sm:w-9" />
+          <Skeleton class="h-9 flex-1 rounded-lg" />
+        </div>
+        <div class="flex items-center gap-3">
+          <Skeleton class="h-8 w-7 shrink-0 rounded-md sm:w-9" />
+          <Skeleton class="h-9 flex-1 rounded-lg" />
+        </div>
+      </div>
+      <div
+        v-else-if="!hasMovement"
+        class="flex min-h-[120px] flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-muted/25 px-4 py-8 text-center"
+      >
+        <p class="text-sm text-muted-foreground">
+          Nenhuma entrada ou saída neste mês.
+        </p>
+        <p class="mt-2 text-xs text-muted-foreground">
+          Registre em
+          <NuxtLink
+            to="/transactions"
+            class="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            transações
+          </NuxtLink>
+          .
+        </p>
+      </div>
+      <div
+        v-else
+        class="flex min-h-[120px] flex-col justify-center gap-4 py-2"
+        role="group"
+        aria-label="Comparativo de entradas (sinal de mais) e saídas (sinal de menos)"
+      >
+        <div class="flex items-center gap-3 sm:gap-4">
+          <span
+            class="w-7 shrink-0 text-center text-lg font-semibold leading-none tabular-nums text-emerald-600 sm:w-9 sm:text-xl dark:text-emerald-400"
+          >
+            +
+          </span>
+          <div
+            class="h-9 min-w-0 flex-1 overflow-hidden rounded-lg bg-muted/50 ring-1 ring-border/50 dark:bg-muted/30"
+          >
+            <div
+              class="h-full rounded-lg bg-emerald-500 shadow-inner ring-1 ring-black/10 transition-[width] duration-500 ease-out dark:bg-emerald-400 dark:ring-white/10"
+              :style="{ width: `${entradaWidth}%`, minWidth: entradaTotal > 0 ? '3px' : '0' }"
+            />
+          </div>
+        </div>
+        <div class="flex items-center gap-3 sm:gap-4">
+          <span
+            class="w-7 shrink-0 text-center text-lg font-semibold leading-none tabular-nums text-rose-600 sm:w-9 sm:text-xl dark:text-rose-400"
+          >
+            -
+          </span>
+          <div
+            class="h-9 min-w-0 flex-1 overflow-hidden rounded-lg bg-muted/50 ring-1 ring-border/50 dark:bg-muted/30"
+          >
+            <div
+              class="h-full rounded-lg bg-rose-500 shadow-inner ring-1 ring-black/10 transition-[width] duration-500 ease-out dark:bg-rose-400 dark:ring-white/10"
+              :style="{ width: `${saidaWidth}%`, minWidth: saidaTotal > 0 ? '3px' : '0' }"
+            />
+          </div>
+        </div>
+      </div>
     </CardContent>
   </Card>
 </template>
