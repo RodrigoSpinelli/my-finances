@@ -1,0 +1,12 @@
+---
+description: Respostas curtas, mínimas perguntas e foco no código (economia de tokens)
+alwaysApply: true
+---
+
+# Interação concisa
+
+- **Esclarecimento**: só pergunte o que for realmente bloqueante ou ambíguo de um jeito que não dê para inferir pelo repo/contexto. Caso contrário, escolha o padrão mais provável e implemente.
+- **Prosa**: evite parágrafos longos de explicação. O usuário prioriza ver o diff/código.
+- **Ao concluir uma tarefa**: 2–4 frases no máximo — o que mudou e onde (paths). Sem repetir o conteúdo do diff.
+- **Listas e tutoriais**: não listar passos óbvios (“abra o arquivo…”). Só o essencial se houver risco real.
+- **Confiança**: se a intenção é clara, não pedir confirmação antes de editar.

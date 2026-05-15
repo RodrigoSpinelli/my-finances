@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TableCell, TableRow } from "@/components/ui/table";
+import type { BadgeVariants } from "@/components/ui/badge";
 import type { Category } from "~/interfaces/category";
 import type { TableHeaders } from "~/interfaces/table";
 import type { DateValue } from "@internationalized/date";
@@ -39,16 +40,58 @@ const typeOptions = [
   { label: "Despesa", value: "expense" },
 ];
 
-const { categories } = storeToRefs(useCategoriesStore());
+/** Tipo de transação escolhido no filtro (normalizado; v-model do select é string). */
+const selectedTxType = computed((): "income" | "expense" | undefined => {
+  const t = filter.value.type;
+  return t === "income" || t === "expense" ? t : undefined;
+});
+
+const categoriesForTypeFilter = ref<Category[]>([]);
+const pendingCategoryOptions = ref(false);
+
+let categoryFetchSeq = 0;
+
+watch(
+  selectedTxType,
+  async (t) => {
+    filter.value.categoryId = undefined;
+    if (!t) {
+      categoriesForTypeFilter.value = [];
+      return;
+    }
+    const seq = ++categoryFetchSeq;
+    pendingCategoryOptions.value = true;
+    try {
+      const res = await $fetch<{ categories: Category[] }>("/api/categories", {
+        query: { type: t },
+      });
+      if (seq !== categoryFetchSeq)
+        return;
+      categoriesForTypeFilter.value = res.categories ?? [];
+    } catch {
+      if (seq !== categoryFetchSeq)
+        return;
+      categoriesForTypeFilter.value = [];
+      useToast({
+        type: "error",
+        title: "Erro",
+        description: "Não foi possível carregar as categorias deste tipo.",
+      });
+    } finally {
+      if (seq === categoryFetchSeq)
+        pendingCategoryOptions.value = false;
+    }
+  },
+  { immediate: true },
+);
 
 const categoryOptions = computed(() =>
-  categories.value.map((c) => ({
+  categoriesForTypeFilter.value.map((c) => ({
     label: c.name,
     value: c.id,
   })),
 );
 
-/** Chave estável para o useFetch reagir a mudanças nos filtros. */
 const filterQueryKey = computed(() => ({
   date: filter.value.date?.toString() ?? "",
   type: filter.value.type ?? "",
@@ -90,6 +133,7 @@ const headers: TableHeaders[] = [
   { label: "Tipo" },
   { label: "Valor", align: "right" },
   { label: "Categoria" },
+  { label: "Estabelecimento" },
   { label: "Descrição" },
   { label: "Ações", align: "right" },
 ];
@@ -125,6 +169,33 @@ function formatDate(iso: string) {
   const [y, m, d] = iso.split("-");
   if (!y || !m || !d) return iso;
   return `${d}/${m}/${y}`;
+}
+
+const knownCategoryBadgeVariants = new Set<string>([
+  "default",
+  "destructive",
+  "outline",
+  "secondary",
+  "red",
+  "blue",
+  "purple",
+  "yellow",
+  "gray",
+  "green",
+  "emerald",
+  "amber",
+  "indigo",
+  "green-light",
+  "red-light",
+]);
+
+/** `colors.name` na API é `string`; o Badge só aceita chaves de variante conhecidas. */
+function categoryBadgeVariant(
+  color: string | null | undefined,
+): NonNullable<BadgeVariants["variant"]> {
+  if (color != null && knownCategoryBadgeVariants.has(color))
+    return color as NonNullable<BadgeVariants["variant"]>;
+  return "default";
 }
 
 function openDialog(id?: string) {
@@ -215,6 +286,8 @@ async function afterTransactionSave() {
           placeholder="Selecione uma categoria"
           class="w-full"
           v-model="filter.categoryId"
+          :disabled="!selectedTxType || pendingCategoryOptions"
+          title="Selecione um tipo para filtrar por categoria"
         />
       </div>
       <div class="flex items-center space-x-2">
@@ -283,18 +356,19 @@ async function afterTransactionSave() {
                 : ''
           "
         >
-          {{ t.type === "expense" ? "−" : t.type === "income" ? "+" : "" }}
+          {{ t.type === "income" ? "+" : "" }}
           {{ money.format(t.amount) }}
         </TableCell>
         <TableCell>
-          <span v-if="t.category" class="inline-flex items-center gap-2">
-            <Icon
-              :name="t.category.icon"
-              class="text-muted-foreground size-4 shrink-0"
-            />
-            {{ t.category.name }}
-          </span>
-          <span v-else class="text-muted-foreground">—</span>
+          <Badge :variant="categoryBadgeVariant(t.categories.color)">
+            <span class="inline-flex items-center gap-2">
+              <Icon :name="t.categories.icon" class="size-4 shrink-0" />
+              {{ t.categories.name }}
+            </span>
+          </Badge>
+        </TableCell>
+        <TableCell>
+          {{ t.merchant || "Não informado" }}
         </TableCell>
         <TableCell class="max-w-48 truncate text-muted-foreground text-sm">
           {{ t.description || "Não informado" }}

@@ -136,7 +136,7 @@ const crosshairTemplate = componentToString(
             :x="(d: ChartPoint) => d.date"
             :y="(d: ChartPoint) => d.expense"
             :color="chartConfig.expense.color"
-            :curve-type="CurveType.Linear"
+            :curve-type="CurveType.BasisOpen"
           />
           <VisAxis
             type="x"

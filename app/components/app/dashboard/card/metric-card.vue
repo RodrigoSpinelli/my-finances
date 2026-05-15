@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { Component } from "vue"
-import type { DashboardBalance } from "~/interfaces/balance"
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next"
 import { cn } from "@/lib/utils"
 
 const ACCENT = {
+  default: {
+    bar: "bg-linear-to-r from-gray-500 via-gray-600 to-gray-700",
+    iconBox:
+      "rounded-xl bg-gray-500/10 p-2.5 text-gray-600 shadow-inner ring-1 ring-gray-500/15 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20",
+  },
   emerald: {
     bar: "bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500",
     iconBox:
@@ -15,20 +19,34 @@ const ACCENT = {
     iconBox:
       "rounded-xl bg-sky-500/10 p-2.5 text-sky-600 shadow-inner ring-1 ring-sky-500/15 dark:bg-sky-400/10 dark:text-sky-400 dark:ring-sky-400/20",
   },
+  teal: {
+    bar: "bg-linear-to-r from-teal-500 via-emerald-500 to-cyan-600",
+    iconBox:
+      "rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 shadow-inner ring-1 ring-emerald-500/15 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/20",
+  },
+  rose: {
+    bar: "bg-linear-to-r from-rose-600 via-red-500 to-red-700",
+    iconBox:
+      "rounded-xl bg-red-500/10 p-2.5 text-red-600 shadow-inner ring-1 ring-red-500/15 dark:bg-red-400/10 dark:text-red-400 dark:ring-red-400/20",
+  },
 } as const
 
 type AccentKey = keyof typeof ACCENT
 
 const props = defineProps<{
-  data: DashboardBalance | null
   pending: boolean
   title: string
   description: string
-  /** Cor do degradê superior e do bloco do ícone */
   accent: AccentKey
   icon: Component
-  /** Qual par de campos de `data` exibir */
-  variant: "current" | "previous"
+  /** Valor exibido (moeda) */
+  amount: number
+  /** Quando não for `null`, exibe o distintivo de variação percentual */
+  changePercent?: number | null
+  /** Legenda curta no rodapé (ex.: “Mês anterior”) */
+  footerLabel?: string
+  /** Valor no rodapé em moeda; omitir o label para ocultar o rodapé */
+  footerAmount?: number
 }>()
 
 const { money } = useCurrencyFormat()
@@ -44,15 +62,9 @@ function formatPct(value: number | null): string {
   return pct.format(value / 100)
 }
 
-const amount = computed(() => {
-  if (props.variant === "current") return props.data?.current_balance ?? 0
-  return props.data?.previous_balance ?? 0
-})
-
-const changePercent = computed(() => {
-  if (props.variant === "current") return props.data?.current_change_percent
-  return props.data?.previous_change_percent
-})
+const showFooter = computed(
+  () => Boolean(props.footerLabel?.trim()),
+)
 </script>
 
 <template>
@@ -81,7 +93,7 @@ const changePercent = computed(() => {
         <component :is="icon" class="size-5" :stroke-width="2" />
       </div>
     </CardHeader>
-    <CardContent class="pb-6 pt-0">
+    <CardContent class="pt-0" :class="showFooter ? 'pb-4' : 'pb-6'">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <template v-if="pending">
           <div class="flex w-full flex-col gap-2">
@@ -108,5 +120,26 @@ const changePercent = computed(() => {
         </template>
       </div>
     </CardContent>
+    <CardFooter
+      v-if="showFooter"
+      class="flex flex-col items-stretch gap-1 border-t border-border/50 bg-muted/25 px-6 py-3.5 dark:bg-muted/15"
+    >
+      <template v-if="pending">
+        <Skeleton class="h-3 w-24 rounded" />
+        <Skeleton class="h-5 w-[min(100%,10rem)] rounded-md" />
+      </template>
+      <template v-else>
+        <p
+          class="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/90"
+        >
+          {{ footerLabel }}
+        </p>
+        <p
+          class="text-sm font-semibold tabular-nums tracking-tight text-foreground/90"
+        >
+          {{ money.format(footerAmount ?? 0) }}
+        </p>
+      </template>
+    </CardFooter>
   </Card>
 </template>

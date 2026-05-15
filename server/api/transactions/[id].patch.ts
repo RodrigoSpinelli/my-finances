@@ -21,6 +21,7 @@ export default defineEventHandler(async (event) => {
     category_id?: string | null
     date?: string
     description?: string | null
+    merchant?: string | null
     type?: TransactionType
   }>(event)
 
@@ -71,6 +72,13 @@ export default defineEventHandler(async (event) => {
       = body.description === null
         ? null
         : String(body.description).trim() || null
+  }
+
+  if (body.merchant !== undefined) {
+    patch.merchant
+      = body.merchant === null
+        ? null
+        : String(body.merchant).trim() || null
   }
 
   if (body.type !== undefined) {

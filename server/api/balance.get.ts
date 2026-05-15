@@ -14,6 +14,7 @@ function signedAmount(
   return 0
 }
 
+/** Variação % de `from` para `to` (base = valor absoluto do período anterior). */
 function percentChange(from: number, to: number): number | null {
   if (from === 0)
     return null
@@ -25,17 +26,16 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const monthRaw = typeof query.month === "string" ? query.month : ""
   const month = monthRaw ? monthRaw : currentYearMonth()
-  const { end } = monthDateBounds(month)
+  const { start, end } = monthDateBounds(month)
   const prevYm = shiftYearMonth(month, -1)
-  const priorYm = shiftYearMonth(month, -2)
-  const { end: endPrevious } = monthDateBounds(prevYm)
-  const { end: endPrior } = monthDateBounds(priorYm)
+  const { start: prevMonthStart, end: endPrevious } = monthDateBounds(prevYm)
 
   const client = await serverSupabaseClient(event)
   const { data: rows, error } = await client
     .from("transactions")
     .select("type, amount, date")
     .eq("user_id", userId)
+    .gte("date", prevMonthStart)
     .lte("date", end)
 
   if (error) {
@@ -45,23 +45,21 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  let current_balance = 0
-  let previous_balance = 0
-  let prior_balance = 0
+  let month_balance = 0
+  let previous_month_net = 0
+
   for (const r of rows ?? []) {
     const s = signedAmount(r.type, r.amount)
-    if (r.date <= endPrior)
-      prior_balance += s
-    if (r.date <= endPrevious)
-      previous_balance += s
-    current_balance += s
+    if (r.date >= start && r.date <= end)
+      month_balance += s
+    if (r.date >= prevMonthStart && r.date <= endPrevious)
+      previous_month_net += s
   }
 
   return {
     month,
-    current_balance,
-    previous_balance,
-    current_change_percent: percentChange(previous_balance, current_balance),
-    previous_change_percent: percentChange(prior_balance, previous_balance),
+    month_balance,
+    previous_month_balance: previous_month_net,
+    month_change_percent: percentChange(previous_month_net, month_balance),
   }
 })

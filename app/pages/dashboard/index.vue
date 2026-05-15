@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { CalendarArrowDownIcon, WalletIcon } from "lucide-vue-next";
+import {
+  ReceiptTextIcon,
+  WalletIcon,
+} from "lucide-vue-next";
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { GoalPayload } from "~/interfaces/goal";
 import type {
@@ -16,11 +19,40 @@ useHead({
   title: "Dashboard",
 });
 
+const route = useRoute();
+const router = useRouter();
+
 const { categories } = storeToRefs(useCategoriesStore());
 const { getCategories } = useCategoriesStore();
 
+/** Drawer "Nova transação" — pode ser aberto pela query `?newexpense=true`. */
+const transactionDrawerOpen = ref(false);
+
 /** Só abre após carregar a API: a store começa vazia e senão o modal ficaria aberto mesmo com categorias. */
 const isOpen = ref(false);
+
+function isNewExpenseQueryTrue(q: typeof route.query): boolean {
+  const raw = q.newexpense;
+  if (raw === undefined) return false;
+  const s = (Array.isArray(raw) ? raw[0] : raw) ?? "";
+  return s === "true" || s === "1" || s === "";
+}
+
+function stripNewExpenseFromUrl() {
+  if (!("newexpense" in route.query)) return;
+  const rest = { ...route.query };
+  delete rest.newexpense;
+  router.replace({ path: route.path, query: rest });
+}
+
+/** Abre o drawer de despesa quando houver categorias e a query solicitar (`/dashboard?newexpense=true`). */
+async function maybeOpenExpenseDrawerFromQuery() {
+  await getCategories();
+  if (!isNewExpenseQueryTrue(route.query)) return;
+  if (categories.value.length === 0) return;
+  transactionDrawerOpen.value = true;
+  stripNewExpenseFromUrl();
+}
 
 const user = useSupabaseUser();
 
@@ -73,7 +105,7 @@ const {
 
 const monthExpenseTotal = computed(
   () => expenseDailyData.value?.month_total ?? 0,
-)
+);
 
 const getAll = async () => {
   await Promise.all([
@@ -89,12 +121,14 @@ onMounted(async () => {
   await getCategories();
   if (categories.value.length === 0) {
     isOpen.value = true;
+  } else {
+    await maybeOpenExpenseDrawerFromQuery();
   }
 });
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl space-y-4 p-6">
+  <div class="mx-auto space-y-4 px-36 py-6">
     <div
       class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
     >
@@ -105,6 +139,7 @@ onMounted(async () => {
       </div>
       <div class="flex items-center space-x-2">
         <shared-drawer
+          v-model="transactionDrawerOpen"
           form="transaction"
           title="Nova despesa"
           description="Registre uma nova despesa"
@@ -132,32 +167,34 @@ onMounted(async () => {
         </NativeSelect>
       </div>
     </div>
-    <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
-      <app-dashboard-card-balance-stat
-        :data="balanceData ?? null"
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      <app-dashboard-card-metric-card
         :pending="balancePending"
-        variant="current"
         title="Saldo atual"
-        description="Posição consolidada no mês"
+        description="Líquido do mês (entradas − saídas)"
         accent="emerald"
         :icon="WalletIcon"
-        class="sm:col-span-3"
+        :amount="balanceData?.month_balance ?? 0"
+        :change-percent="balanceData?.month_change_percent ?? null"
+        footer-label="Saldo líquido no mês anterior"
+        :footer-amount="balanceData?.previous_month_balance ?? 0"
       />
-      <app-dashboard-card-balance-stat
-        :data="balanceData ?? null"
-        :pending="balancePending"
-        variant="previous"
-        title="Saldo anterior"
-        description="Referência do mês passado"
-        accent="sky"
-        :icon="CalendarArrowDownIcon"
-        class="sm:col-span-3"
-      />
-      <app-dashboard-card-month-total-expense
+      <app-dashboard-card-metric-card
         :pending="expenseDailyPending"
-        :total="monthExpenseTotal"
-        class="sm:col-span-3"
+        title="Gasto total do mês"
+        description="Soma de todas as despesas no período"
+        accent="rose"
+        :icon="ReceiptTextIcon"
+        :amount="monthExpenseTotal"
+        footer-label="Despesas no mês anterior"
+        :footer-amount="expenseDailyData?.previous_month_total ?? 0"
       />
+      <app-dashboard-chart-bar
+        :pending="monthFlowPending"
+        :data="monthFlowData ?? null"
+      />
+    </div>
+    <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
       <app-dashboard-chart-categories
         :pending="categoriesPending"
         :data="categoriesData ?? null"
@@ -187,7 +224,7 @@ onMounted(async () => {
       title="Escolha suas primeiras categorias"
       description="Selecione as categorias iniciais que você irá utilizar no seu controle financeiro. Isso ajudará a personalizar sua experiência. Você poderá adicionar ou editar categorias depois, se quiser."
       form="firstCategories"
-      @submit="getCategories"
+      @submit="maybeOpenExpenseDrawerFromQuery"
     />
   </div>
 </template>

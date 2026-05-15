@@ -4,5 +4,5 @@ import type { Category } from "./category";
 export type Transaction = Tables<"transactions">
 
 export type TransactionWithCategory = Transaction & {
-  category: Category | null;
+  categories: Category;
 }

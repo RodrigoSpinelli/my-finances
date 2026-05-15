@@ -31,6 +31,11 @@ function parseFilters(query: Record<string, unknown>): TransactionListFilters {
     filters.categoryId = categoryId
   }
 
+  const monthRaw = typeof query.month === "string" ? query.month.trim() : ""
+  if (/^\d{4}-\d{2}$/.test(monthRaw)) {
+    filters.month = monthRaw
+  }
+
   return filters
 }
 

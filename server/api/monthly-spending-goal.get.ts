@@ -1,6 +1,17 @@
 import { serverSupabaseClient } from "#supabase/server"
+import type { MonthlyGoalItem } from "~/interfaces/goal"
+import { flattenCategoryIcon, type CategoryRowWithIconJoin } from "../utils/category-with-icon"
 import { currentYearMonth, monthDateBounds } from "../utils/month-bounds"
 import { requireAuthUserId } from "../utils/require-auth-user"
+
+type GoalRow = {
+  id: string
+  amount: string | number
+  category_id: string | null
+  categories:
+    | (CategoryRowWithIconJoin & Record<string, unknown>)
+    | null
+}
 
 export default defineEventHandler(async (event) => {
   const userId = await requireAuthUserId(event)
@@ -14,26 +25,26 @@ export default defineEventHandler(async (event) => {
 
   const client = await serverSupabaseClient(event)
 
-  const [goalRes, txRes] = await Promise.all([
+  const [goalsRes, txRes] = await Promise.all([
     client
       .from("monthly_goals")
-      .select("id, amount")
+      .select("id, amount, category_id, categories(*, icons(name), colors(name))")
       .eq("user_id", userId)
       .eq("year", year)
       .eq("month", monthNum)
-      .maybeSingle(),
+      .order("category_id", { ascending: true, nullsFirst: true }),
     client
       .from("transactions")
-      .select("type, amount")
+      .select("type, amount, category_id")
       .eq("user_id", userId)
       .gte("date", start)
       .lte("date", end),
   ])
 
-  if (goalRes.error) {
+  if (goalsRes.error) {
     throw createError({
       statusCode: 500,
-      statusMessage: goalRes.error.message,
+      statusMessage: goalsRes.error.message,
     })
   }
   if (txRes.error) {
@@ -43,16 +54,57 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  let spent = 0
-  for (const r of txRes.data ?? []) {
-    if (r.type === "expense")
-      spent += Math.abs(Number(r.amount) || 0)
+  type TxRow = { type: string, amount?: string | number, category_id: string | null }
+  const txs = txRes.data as TxRow[] | null
+
+  const expenses = (
+    txs?.filter(r => r.type === "expense") ?? []
+  ).map(r => ({
+    amount: Math.abs(Number(r.amount) || 0),
+    category_id: r.category_id,
+  }))
+
+  const totalExpense = expenses.reduce((s, r) => s + r.amount, 0)
+
+  const spentByCategory = new Map<string, number>()
+  for (const row of expenses) {
+    const cid = row.category_id
+    if (cid)
+      spentByCategory.set(cid, (spentByCategory.get(cid) ?? 0) + row.amount)
   }
 
-  const g = goalRes.data
-  const goal = g
-    ? { id: g.id, amount: Number(g.amount) }
-    : null
+  function spentFor(categoryId: string | null): number {
+    if (categoryId === null)
+      return totalExpense
+    return spentByCategory.get(categoryId) ?? 0
+  }
 
-  return { month, goal, spent }
+  const goals: MonthlyGoalItem[] = []
+
+  const rows = (goalsRes.data ?? []) as GoalRow[]
+
+  for (const raw of rows) {
+    const cid = raw.category_id
+    let brief: MonthlyGoalItem["category"] = null
+    const joined = raw.categories
+    if (joined && cid) {
+      const flat = flattenCategoryIcon(joined as CategoryRowWithIconJoin)
+      brief = {
+        id: flat.id,
+        name: flat.name,
+        icon: flat.icon,
+        color: flat.color,
+      }
+    }
+
+    goals.push({
+      id: raw.id,
+      amount: Number(raw.amount) || 0,
+      category_id: cid,
+      category: cid ? brief : null,
+      spent: spentFor(cid),
+    })
+  }
+
+  return { month, goals }
 })

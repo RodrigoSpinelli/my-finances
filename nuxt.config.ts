@@ -60,9 +60,39 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseKey: process.env.SUPABASE_KEY,
+      NUXT_PUBLIC_SITE_URL: process.env.NUXT_PUBLIC_SITE_URL,
     },
   },
   app: {
     pageTransition: { name: "page", mode: "out-in" },
+    head: {
+      title: "My Finances",
+      meta: [
+        {
+          name: "apple-mobile-web-app-capable",
+          content: "yes",
+        },
+        /** Legado Android / outros browsers ao “instalar”. */
+        { name: "mobile-web-app-capable", content: "yes" },
+        {
+          name: "apple-mobile-web-app-status-bar-style",
+          content: "default",
+        },
+        { name: "apple-mobile-web-app-title", content: "My Finances" },
+        { name: "theme-color", content: "#ffffff", media: "(prefers-color-scheme: light)" },
+        {
+          name: "theme-color",
+          content: "#0a0a0a",
+          media: "(prefers-color-scheme: dark)",
+        },
+      ],
+      link: [
+        {
+          rel: "apple-touch-icon",
+          href: "/apple-touch-icon.png",
+        },
+        { rel: "manifest", href: "/manifest.webmanifest" },
+      ],
+    },
   },
 });

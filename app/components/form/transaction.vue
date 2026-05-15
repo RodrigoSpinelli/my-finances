@@ -28,6 +28,7 @@ interface Form {
   date: string | undefined;
   description: string;
   type: TransactionType;
+  merchant?: string;
 }
 
 const categories = ref<Category[]>([]);
@@ -109,6 +110,7 @@ const create = async () => {
         date: form.date,
         description: form.description.trim() || null,
         type: form.type,
+        merchant: form.merchant ?? null,
       },
     });
     useToast({
@@ -158,6 +160,7 @@ const update = async () => {
         date: form.date,
         description: form.description.trim() || null,
         type: form.type,
+        merchant: form.merchant ?? null,
       },
     });
     useToast({
@@ -187,6 +190,7 @@ const getData = async () => {
     form.date = t.date;
     form.description = t.description ?? "";
     form.type = (t.type ?? "expense") as TransactionType;
+    form.merchant = t.merchant ?? "";
   } catch (error) {
     useToast({
       type: "error",
@@ -248,12 +252,20 @@ onMounted(() => {
         required
       />
     </div>
+    <shared-input
+      id="tx_merchant"
+      v-model="form.merchant"
+      label="Estabelecimento"
+      placeholder="Ex.: Supermercado"
+      type="text"
+      icon="lucide:store"
+    />
     <div class="space-y-2">
       <Label for="tx_description">Descrição (opcional)</Label>
       <Textarea
         id="tx_description"
         v-model="form.description"
-        placeholder="Ex.: Supermercado semanal"
+        placeholder="Ex.: Almoço no restaurante"
         rows="3"
       />
     </div>
