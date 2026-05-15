@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
     category_id?: string | null
     date?: string
     description?: string | null
+    merchant?: string | null
     type?: TransactionType
   }>(event)
 
@@ -47,6 +48,11 @@ export default defineEventHandler(async (event) => {
       ? null
       : String(body.description).trim() || null
 
+  const merchant
+    = body.merchant === undefined || body.merchant === null
+      ? null
+      : String(body.merchant).trim() || null
+
   await assertTransactionRelations(event, {
     type,
     category_id,
@@ -58,6 +64,7 @@ export default defineEventHandler(async (event) => {
     category_id,
     date,
     description,
+    merchant,
     type,
     user_id: userId,
   }
