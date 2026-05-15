@@ -186,7 +186,7 @@ function spendingsOverflowNote(cid: string): { total: number } | null {
           <PopoverTrigger as-child>
             <button
               type="button"
-              class="group cursor-pointer flex w-full flex-col gap-2 rounded-xl border border-border/50 bg-muted/20 p-3 text-left transition-all hover:border-fuchsia-500/25 hover:bg-muted/35 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              class="group cursor-pointer shadow-md flex w-full flex-col gap-2 rounded-xl border border-border/50 bg-muted/20 p-3 text-left transition-all hover:border-fuchsia-500/25 hover:bg-muted/35 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
               :aria-label="`Ver lançamentos de ${category.name}`"
             >
               <div class="flex items-center justify-between gap-2">

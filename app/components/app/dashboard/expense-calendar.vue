@@ -119,7 +119,7 @@ function formatDayLabel(amount: number) {
       </div>
       <div
         v-else
-        class="rounded-xl border border-border/40 bg-muted/15 p-3"
+        class="rounded-xl border border-border/40 bg-muted/15 shadow-lg p-3"
       >
         <Calendar
           :key="month"
