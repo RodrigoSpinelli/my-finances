@@ -167,7 +167,7 @@ onMounted(async () => {
       <app-dashboard-card-metric-card
         :pending="balancePending"
         title="Saldo atual"
-        description="Líquido do mês (entradas − saídas)"
+        description="Líquido do mês"
         accent="emerald"
         :icon="WalletIcon"
         :amount="balanceData?.month_balance ?? 0"
@@ -178,8 +178,8 @@ onMounted(async () => {
       />
       <app-dashboard-card-metric-card
         :pending="expenseDailyPending"
-        title="Gasto total do mês"
-        description="Soma de todas as despesas no período"
+        title="Gasto atual"
+        description="Total de despesas"
         accent="rose"
         :icon="ReceiptTextIcon"
         :amount="monthExpenseTotal"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LogOut, Menu, PiggyBankIcon } from "lucide-vue-next";
+import { LogOut, Menu } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -108,16 +108,7 @@ function closeMobileNav() {
           </Drawer>
         </div>
 
-        <NuxtLink
-          to="/dashboard"
-          class="text-primary flex shrink-0 items-center rounded-md outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Ir para início"
-        >
-          <PiggyBankIcon
-            class="size-6 shrink-0 sm:size-7"
-            aria-hidden="true"
-          />
-        </NuxtLink>
+        <shared-logo-link variant="app-nav" />
       </div>
 
       <div

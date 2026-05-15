@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Loader2, PiggyBankIcon } from "lucide-vue-next";
+import { Loader2 } from "lucide-vue-next";
 import {
   Card,
   CardContent,
@@ -34,9 +34,9 @@ watch(
     >
       <CardHeader class="space-y-4 border-0 pb-0 text-center">
         <div
-          class="bg-primary/12 text-primary ring-primary/10 mx-auto flex size-14 items-center justify-center rounded-2xl ring-1"
+          class="bg-primary/12 ring-primary/10 mx-auto flex size-14 items-center justify-center rounded-2xl ring-1"
         >
-          <PiggyBankIcon class="size-7" aria-hidden="true" />
+          <shared-logo-icon icon-class="size-7" />
         </div>
         <div class="space-y-2">
           <CardTitle class="text-xl font-semibold tracking-tight">

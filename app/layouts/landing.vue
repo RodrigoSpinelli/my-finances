@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PiggyBankIcon } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 
 const authorSite = "https://www.rodrigospinelli.dev";
@@ -13,16 +12,7 @@ const authorSite = "https://www.rodrigospinelli.dev";
       <div
         class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6"
       >
-        <NuxtLink
-          to="/"
-          class="text-primary flex items-center gap-2 rounded-md outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Porquinho Financeiro — início"
-        >
-          <PiggyBankIcon class="size-7 shrink-0 sm:size-8" aria-hidden="true" />
-          <span class="text-foreground text-sm font-semibold tracking-tight sm:text-base">
-            Porquinho Financeiro
-          </span>
-        </NuxtLink>
+        <shared-logo-link variant="marketing-nav" />
         <div class="flex items-center gap-2 sm:gap-3">
           <ClientOnly>
             <shared-toggle-color-mode aria-label="Alternar modo claro/escuro" />
@@ -50,8 +40,12 @@ const authorSite = "https://www.rodrigospinelli.dev";
         <p
           class="flex max-w-md flex-wrap items-center justify-center gap-x-2 gap-y-1 lg:justify-start"
         >
-          <PiggyBankIcon class="text-primary size-5 shrink-0" aria-hidden="true" />
-          <span class="text-foreground font-medium">Porquinho Financeiro</span>
+          <shared-logo-link
+            variant="footer-brand"
+            to="/"
+            icon-class="size-5 shrink-0"
+            brand-class="font-medium"
+          />
           <span class="hidden sm:inline" aria-hidden="true">·</span>
           <span>&copy; {{ new Date().getFullYear() }}</span>
         </p>

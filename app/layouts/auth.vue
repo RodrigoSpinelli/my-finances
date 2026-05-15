@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import { PiggyBankIcon } from "lucide-vue-next";
-</script>
-
 <template>
   <div
     class="bg-background text-foreground relative flex min-h-dvh flex-col overflow-hidden"
@@ -17,18 +13,7 @@ import { PiggyBankIcon } from "lucide-vue-next";
     <header
       class="relative z-10 flex shrink-0 items-center justify-between gap-4 px-4 py-5 sm:px-8"
     >
-      <NuxtLink
-        to="/"
-        class="text-primary flex min-w-0 items-center gap-2 rounded-lg outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="Porquinho Financeiro — voltar ao início"
-      >
-        <PiggyBankIcon class="size-8 shrink-0 sm:size-9" aria-hidden="true" />
-        <span
-          class="text-foreground truncate text-sm font-semibold tracking-tight sm:text-base"
-        >
-          Porquinho Financeiro
-        </span>
-      </NuxtLink>
+      <shared-logo-link variant="auth-nav" />
       <ClientOnly>
         <shared-toggle-color-mode aria-label="Alternar modo claro/escuro" />
       </ClientOnly>
