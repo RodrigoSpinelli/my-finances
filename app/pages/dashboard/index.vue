@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import {
-  ReceiptTextIcon,
-  WalletIcon,
-} from "lucide-vue-next";
+import { ReceiptTextIcon, WalletIcon } from "lucide-vue-next";
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { GoalPayload } from "~/interfaces/goal";
-import type { ExpenseDailyResponse, CategoryData } from "~/interfaces/dashboard";
+import type {
+  ExpenseDailyResponse,
+  CategoryData,
+} from "~/interfaces/dashboard";
 
 definePageMeta({
   name: "dashboard",
@@ -164,48 +164,50 @@ onMounted(async () => {
       </div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <app-dashboard-card-metric-card
-        :pending="balancePending"
-        title="Saldo atual"
-        description="Líquido do mês"
-        accent="emerald"
-        :icon="WalletIcon"
-        :amount="balanceData?.month_balance ?? 0"
-        :change-percent="balanceData?.month_change_percent ?? null"
-        footer-label="Saldo líquido no mês anterior"
-        :footer-amount="balanceData?.previous_month_balance ?? 0"
-        :trend="balanceData?.daily_cumulative_net ?? null"
-      />
-      <app-dashboard-card-metric-card
-        :pending="expenseDailyPending"
-        title="Gasto atual"
-        description="Total de despesas"
-        accent="rose"
-        :icon="ReceiptTextIcon"
-        :amount="monthExpenseTotal"
-        footer-label="Despesas no mês anterior"
-        :footer-amount="expenseDailyData?.previous_month_total ?? 0"
-        :trend="expenseCumulativeTrend"
-      />
-      <app-dashboard-chart-categories
-        :pending="categoriesPending"
-        :data="categoriesData ?? null"
-      />
-
-      <app-dashboard-chart-analysis
-        :pending="expenseDailyPending"
-        :data="expenseDailyData ?? null"
-      />
+      <div class="grid gap-6">
+        <app-dashboard-card-metric-card
+          :pending="balancePending"
+          title="Saldo atual"
+          description="Líquido do mês"
+          accent="emerald"
+          :icon="WalletIcon"
+          :amount="balanceData?.month_balance ?? 0"
+          :change-percent="balanceData?.month_change_percent ?? null"
+          footer-label="Saldo líquido no mês anterior"
+          :footer-amount="balanceData?.previous_month_balance ?? 0"
+          :trend="balanceData?.daily_cumulative_net ?? null"
+        />
+        <app-dashboard-card-metric-card
+          :pending="expenseDailyPending"
+          title="Gasto atual"
+          description="Total de despesas"
+          accent="rose"
+          :icon="ReceiptTextIcon"
+          :amount="monthExpenseTotal"
+          footer-label="Despesas no mês anterior"
+          :footer-amount="expenseDailyData?.previous_month_total ?? 0"
+          :trend="expenseCumulativeTrend"
+        />
+      </div>
       <app-dashboard-expense-calendar
         :month="month"
         :daily="expenseDailyData?.daily ?? []"
         :pending="expenseDailyPending"
+      />
+      <app-dashboard-chart-analysis
+        :pending="expenseDailyPending"
+        :data="expenseDailyData ?? null"
+      />
+      <app-dashboard-chart-categories
+        :pending="categoriesPending"
+        :data="categoriesData ?? null"
       />
       <app-dashboard-card-spending-target
         :month="month"
         :pending="goalPending"
         :data="goalData ?? null"
         @refresh="getAll"
+        class="lg:col-span-2"
       />
     </div>
     <shared-dialog
