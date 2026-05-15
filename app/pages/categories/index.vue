@@ -109,7 +109,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl space-y-8 p-6">
+  <div class="mx-auto space-y-4 max-w-7xl px-4 py-6">
     <header class="space-y-1">
       <h1 class="text-2xl font-semibold tracking-tight">Categorias</h1>
       <p class="text-muted-foreground text-sm">
@@ -134,7 +134,7 @@ onUnmounted(() => {
           v-model="typeUi"
           :options="[...typeFilterOptions]"
           placeholder="Tipo da categoria"
-          class="w-full sm:w-44"
+          class="w-full sm:max-w-xs"
           aria-label="Filtrar por tipo de categoria"
         />
       </div>

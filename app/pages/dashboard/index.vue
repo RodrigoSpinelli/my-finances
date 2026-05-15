@@ -124,7 +124,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mx-auto space-y-4 px-36 py-6">
+  <div class="mx-auto space-y-4 max-w-7xl px-4 py-6">
     <div
       class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
     >
@@ -163,7 +163,7 @@ onMounted(async () => {
         </NativeSelect>
       </div>
     </div>
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <app-dashboard-card-metric-card
         :pending="balancePending"
         title="Saldo atual"
@@ -187,31 +187,25 @@ onMounted(async () => {
         :footer-amount="expenseDailyData?.previous_month_total ?? 0"
         :trend="expenseCumulativeTrend"
       />
-    </div>
-    <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
       <app-dashboard-chart-categories
         :pending="categoriesPending"
         :data="categoriesData ?? null"
-        class="lg:col-span-4 sm:col-span-4"
       />
 
       <app-dashboard-chart-analysis
         :pending="expenseDailyPending"
         :data="expenseDailyData ?? null"
-        class="lg:col-span-5 sm:col-span-5"
       />
       <app-dashboard-expense-calendar
         :month="month"
         :daily="expenseDailyData?.daily ?? []"
         :pending="expenseDailyPending"
-        class="lg:col-span-4 sm:col-span-4"
       />
       <app-dashboard-card-spending-target
         :month="month"
         :pending="goalPending"
         :data="goalData ?? null"
         @refresh="getAll"
-        class="lg:col-span-5 sm:col-span-4"
       />
     </div>
     <shared-dialog

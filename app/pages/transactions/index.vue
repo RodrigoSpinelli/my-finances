@@ -228,7 +228,7 @@ async function afterTransactionSave() {
 </script>
 
 <template>
-  <div class="mx-auto max-w-6xl space-y-8 p-6">
+  <div class="mx-auto space-y-4 max-w-7xl px-4 py-6">
     <header class="space-y-1">
       <h1 class="text-2xl font-semibold tracking-tight">Transações</h1>
       <p class="text-muted-foreground text-sm">
