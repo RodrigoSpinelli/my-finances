@@ -4,6 +4,11 @@ import { ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next"
 import { cn } from "@/lib/utils"
 
 const ACCENT = {
+  default: {
+    bar: "bg-linear-to-r from-gray-500 via-gray-600 to-gray-700",
+    iconBox:
+      "rounded-xl bg-gray-500/10 p-2.5 text-gray-600 shadow-inner ring-1 ring-gray-500/15 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20",
+  },
   emerald: {
     bar: "bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500",
     iconBox:
@@ -28,7 +33,7 @@ const ACCENT = {
 
 type AccentKey = keyof typeof ACCENT
 
-defineProps<{
+const props = defineProps<{
   pending: boolean
   title: string
   description: string
@@ -38,6 +43,10 @@ defineProps<{
   amount: number
   /** Quando não for `null`, exibe o distintivo de variação percentual */
   changePercent?: number | null
+  /** Legenda curta no rodapé (ex.: “Mês anterior”) */
+  footerLabel?: string
+  /** Valor no rodapé em moeda; omitir o label para ocultar o rodapé */
+  footerAmount?: number
 }>()
 
 const { money } = useCurrencyFormat()
@@ -52,6 +61,10 @@ function formatPct(value: number | null): string {
   if (value === null) return "—"
   return pct.format(value / 100)
 }
+
+const showFooter = computed(
+  () => Boolean(props.footerLabel?.trim()),
+)
 </script>
 
 <template>
@@ -80,7 +93,7 @@ function formatPct(value: number | null): string {
         <component :is="icon" class="size-5" :stroke-width="2" />
       </div>
     </CardHeader>
-    <CardContent class="pb-6 pt-0">
+    <CardContent class="pt-0" :class="showFooter ? 'pb-4' : 'pb-6'">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <template v-if="pending">
           <div class="flex w-full flex-col gap-2">
@@ -107,5 +120,26 @@ function formatPct(value: number | null): string {
         </template>
       </div>
     </CardContent>
+    <CardFooter
+      v-if="showFooter"
+      class="flex flex-col items-stretch gap-1 border-t border-border/50 bg-muted/25 px-6 py-3.5 dark:bg-muted/15"
+    >
+      <template v-if="pending">
+        <Skeleton class="h-3 w-24 rounded" />
+        <Skeleton class="h-5 w-[min(100%,10rem)] rounded-md" />
+      </template>
+      <template v-else>
+        <p
+          class="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/90"
+        >
+          {{ footerLabel }}
+        </p>
+        <p
+          class="text-sm font-semibold tabular-nums tracking-tight text-foreground/90"
+        >
+          {{ money.format(footerAmount ?? 0) }}
+        </p>
+      </template>
+    </CardFooter>
   </Card>
 </template>

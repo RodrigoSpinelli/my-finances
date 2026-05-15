@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import {
-  CalendarArrowDownIcon,
-  LayersIcon,
   ReceiptTextIcon,
   WalletIcon,
 } from "lucide-vue-next";
@@ -178,6 +176,8 @@ onMounted(async () => {
         :icon="WalletIcon"
         :amount="balanceData?.month_balance ?? 0"
         :change-percent="balanceData?.month_change_percent ?? null"
+        footer-label="Saldo líquido no mês anterior"
+        :footer-amount="balanceData?.previous_month_balance ?? 0"
       />
       <app-dashboard-card-metric-card
         :pending="expenseDailyPending"
@@ -186,26 +186,10 @@ onMounted(async () => {
         accent="rose"
         :icon="ReceiptTextIcon"
         :amount="monthExpenseTotal"
+        footer-label="Despesas no mês anterior"
+        :footer-amount="expenseDailyData?.previous_month_total ?? 0"
       />
-      <app-dashboard-card-metric-card
-        :pending="balancePending"
-        title="Saldo anterior"
-        description="Líquido do mês anterior (o que sobrou naquele mês)"
-        accent="sky"
-        :icon="CalendarArrowDownIcon"
-        :amount="balanceData?.previous_month_balance ?? 0"
-        :change-percent="balanceData?.previous_month_change_percent ?? null"
-      />
-      <app-dashboard-card-metric-card
-        :pending="balancePending"
-        title="Saldo acumulado"
-        description="Patrimônio líquido até o fim do mês selecionado"
-        accent="teal"
-        :icon="LayersIcon"
-        :amount="balanceData?.accumulated_balance ?? 0"
-        :change-percent="balanceData?.accumulated_change_percent ?? null"
-      />
-      
+      <app-dashboard-chart-bar />
     </div>
     <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
       <app-dashboard-chart-categories

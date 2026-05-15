@@ -7,6 +7,8 @@ export interface ExpenseDailyResponse {
   month: string;
   daily: ExpenseDailyRow[];
   month_total: number;
+  /** Soma das despesas no mês anterior ao selecionado. */
+  previous_month_total: number;
 }
 
 export interface MonthFlowResponse {

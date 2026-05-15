@@ -1,5 +1,9 @@
 import { serverSupabaseClient } from "#supabase/server"
-import { currentYearMonth, monthDateBounds } from "../../utils/month-bounds"
+import {
+  currentYearMonth,
+  monthDateBounds,
+  shiftYearMonth,
+} from "../../utils/month-bounds"
 import { requireAuthUserId } from "../../utils/require-auth-user"
 
 function daysInMonthRange(ym: string): string[] {
@@ -25,6 +29,8 @@ export default defineEventHandler(async (event) => {
   const monthRaw = typeof query.month === "string" ? query.month : ""
   const month = monthRaw ? monthRaw : currentYearMonth()
   const { start, end } = monthDateBounds(month)
+  const prevYm = shiftYearMonth(month, -1)
+  const { start: prevStart, end: prevEnd } = monthDateBounds(prevYm)
 
   const client = await serverSupabaseClient(event)
   const { data: rows, error } = await client
@@ -32,7 +38,7 @@ export default defineEventHandler(async (event) => {
     .select("amount, date")
     .eq("user_id", userId)
     .eq("type", "expense")
-    .gte("date", start)
+    .gte("date", prevStart)
     .lte("date", end)
 
   if (error) {
@@ -43,10 +49,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const byDay = new Map<string, number>()
+  let previous_month_total = 0
   for (const r of rows ?? []) {
     const key = String(r.date).slice(0, 10)
     const amt = Math.abs(Number(r.amount) || 0)
-    byDay.set(key, (byDay.get(key) ?? 0) + amt)
+    if (key >= prevStart && key <= prevEnd)
+      previous_month_total += amt
+    if (key >= start && key <= end)
+      byDay.set(key, (byDay.get(key) ?? 0) + amt)
   }
 
   const daily = daysInMonthRange(month).map(date => ({
@@ -56,5 +66,5 @@ export default defineEventHandler(async (event) => {
 
   const month_total = daily.reduce((s, d) => s + d.amount, 0)
 
-  return { month, daily, month_total }
+  return { month, daily, month_total, previous_month_total }
 })
