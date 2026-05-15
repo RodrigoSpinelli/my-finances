@@ -1,5 +1,10 @@
 import { serverSupabaseClient } from "#supabase/server"
-import { currentYearMonth, monthDateBounds, shiftYearMonth } from "../utils/month-bounds"
+import {
+  currentYearMonth,
+  daysInMonthRange,
+  monthDateBounds,
+  shiftYearMonth,
+} from "../utils/month-bounds"
 import { requireAuthUserId } from "../utils/require-auth-user"
 
 function signedAmount(
@@ -47,19 +52,30 @@ export default defineEventHandler(async (event) => {
 
   let month_balance = 0
   let previous_month_net = 0
+  const netByDay = new Map<string, number>()
 
   for (const r of rows ?? []) {
     const s = signedAmount(r.type, r.amount)
-    if (r.date >= start && r.date <= end)
+    if (r.date >= start && r.date <= end) {
       month_balance += s
+      const key = String(r.date).slice(0, 10)
+      netByDay.set(key, (netByDay.get(key) ?? 0) + s)
+    }
     if (r.date >= prevMonthStart && r.date <= endPrevious)
       previous_month_net += s
   }
+
+  let cum = 0
+  const daily_cumulative_net = daysInMonthRange(month).map((d) => {
+    cum += netByDay.get(d) ?? 0
+    return cum
+  })
 
   return {
     month,
     month_balance,
     previous_month_balance: previous_month_net,
     month_change_percent: percentChange(previous_month_net, month_balance),
+    daily_cumulative_net,
   }
 })

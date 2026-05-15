@@ -8,4 +8,6 @@ export interface DashboardBalance {
   previous_month_balance: number;
   /** Variação % do líquido mensal vs o líquido do mês anterior. */
   month_change_percent: number | null;
+  /** Líquido acumulado dia a dia no mês (um valor por dia do calendário). */
+  daily_cumulative_net: number[];
 }

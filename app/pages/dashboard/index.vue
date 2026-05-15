@@ -94,6 +94,16 @@ const monthExpenseTotal = computed(
   () => expenseDailyData.value?.month_total ?? 0,
 );
 
+const expenseCumulativeTrend = computed(() => {
+  const daily = expenseDailyData.value?.daily;
+  if (!daily?.length) return null;
+  let c = 0;
+  return daily.map((row) => {
+    c += row.amount;
+    return c;
+  });
+});
+
 const getAll = async () => {
   await Promise.all([
     balanceRefresh(),
@@ -164,6 +174,7 @@ onMounted(async () => {
         :change-percent="balanceData?.month_change_percent ?? null"
         footer-label="Saldo líquido no mês anterior"
         :footer-amount="balanceData?.previous_month_balance ?? 0"
+        :trend="balanceData?.daily_cumulative_net ?? null"
       />
       <app-dashboard-card-metric-card
         :pending="expenseDailyPending"
@@ -174,6 +185,7 @@ onMounted(async () => {
         :amount="monthExpenseTotal"
         footer-label="Despesas no mês anterior"
         :footer-amount="expenseDailyData?.previous_month_total ?? 0"
+        :trend="expenseCumulativeTrend"
       />
     </div>
     <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
