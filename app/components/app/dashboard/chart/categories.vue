@@ -176,7 +176,7 @@ function spendingsOverflowNote(cid: string): { total: number } | null {
       </div>
       <div
         v-else-if="hasItems"
-        class="scrollbar-dashboard-categories max-h-[min(400px,50vh)] space-y-3 overflow-y-auto scroll-smooth pr-1"
+        class="max-h-[min(400px,50vh)] space-y-3 overflow-y-auto scroll-smooth pr-1"
       >
         <Popover
           v-for="category in items"
