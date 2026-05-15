@@ -11,12 +11,6 @@ export interface ExpenseDailyResponse {
   previous_month_total: number;
 }
 
-export interface MonthFlowResponse {
-  month: string;
-  income_total: number;
-  expense_total: number;
-}
-
 export interface ItemsData {
   category_id: string;
   name: string;

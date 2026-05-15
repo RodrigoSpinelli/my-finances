@@ -5,11 +5,7 @@ import {
 } from "lucide-vue-next";
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { GoalPayload } from "~/interfaces/goal";
-import type {
-  ExpenseDailyResponse,
-  MonthFlowResponse,
-  CategoryData,
-} from "~/interfaces/dashboard";
+import type { ExpenseDailyResponse, CategoryData } from "~/interfaces/dashboard";
 
 definePageMeta({
   name: "dashboard",
@@ -86,15 +82,6 @@ const {
 });
 
 const {
-  data: monthFlowData,
-  pending: monthFlowPending,
-  refresh: monthFlowRefresh,
-} = await useFetch<MonthFlowResponse>("/api/transactions/month-flow", {
-  query: computed(() => ({ month: month.value })),
-  watch: [month],
-});
-
-const {
   data: categoriesData,
   pending: categoriesPending,
   refresh: categoriesRefresh,
@@ -112,7 +99,6 @@ const getAll = async () => {
     balanceRefresh(),
     expenseDailyRefresh(),
     goalRefresh(),
-    monthFlowRefresh(),
     categoriesRefresh(),
   ]);
 };
@@ -167,7 +153,7 @@ onMounted(async () => {
         </NativeSelect>
       </div>
     </div>
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
       <app-dashboard-card-metric-card
         :pending="balancePending"
         title="Saldo atual"
@@ -189,10 +175,6 @@ onMounted(async () => {
         footer-label="Despesas no mês anterior"
         :footer-amount="expenseDailyData?.previous_month_total ?? 0"
       />
-      <app-dashboard-chart-bar
-        :pending="monthFlowPending"
-        :data="monthFlowData ?? null"
-      />
     </div>
     <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
       <app-dashboard-chart-categories
@@ -206,17 +188,12 @@ onMounted(async () => {
         :data="expenseDailyData ?? null"
         class="sm:col-span-5"
       />
-      <app-dashboard-chart-transactions
-        :pending="monthFlowPending"
-        :data="monthFlowData ?? null"
-        class="lg:col-span-3 sm:col-span-3"
-      />
       <app-dashboard-card-spending-target
         :month="month"
         :pending="goalPending"
         :data="goalData ?? null"
         @refresh="getAll"
-        class="lg:col-span-6 sm:col-span-6"
+        class="lg:col-span-9 sm:col-span-4"
       />
     </div>
     <shared-dialog
