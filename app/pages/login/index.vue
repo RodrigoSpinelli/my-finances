@@ -56,11 +56,16 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="w-full max-w-[420px]">
+  <div class="w-full max-w-[440px]">
     <Card
-      class="border-border/70 bg-card/85 gap-0 shadow-xl shadow-black/4 backdrop-blur-sm dark:shadow-black/25"
+      class="border-border/50 bg-card/75 gap-0 overflow-hidden rounded-2xl shadow-2xl shadow-black/8 ring-1 ring-border/40 backdrop-blur-xl dark:bg-card/70 dark:shadow-black/35"
     >
-      <CardHeader class="border-border/60 space-y-4 border-b pb-6 text-center">
+      <CardHeader class="border-border/50 space-y-5 border-b bg-muted/20 pb-7 pt-8 text-center dark:bg-muted/10">
+        <div
+          class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-violet-500/10 ring-1 ring-violet-500/15 dark:bg-violet-400/10 dark:ring-violet-400/20"
+        >
+          <shared-logo-icon icon-class="size-10 shrink-0" />
+        </div>
         <div class="space-y-2">
           <CardTitle class="text-2xl font-semibold tracking-tight">
             Bem-vindo de volta
@@ -70,7 +75,7 @@ async function onSubmit() {
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent class="py-4">
+      <CardContent class="px-6 py-6 sm:px-8">
         <form class="space-y-4" @submit.prevent="onSubmit">
           <shared-input
             v-model="email"
@@ -109,7 +114,7 @@ async function onSubmit() {
         </form>
       </CardContent>
       <CardFooter
-        class="border-border/60 flex flex-col gap-4 border-t py-6"
+        class="border-border/50 bg-muted/10 flex flex-col gap-4 border-t px-6 py-6 sm:px-8 dark:bg-muted/5"
       >
         <p class="text-muted-foreground text-center text-sm">
           Ainda não tem conta?
