@@ -8,11 +8,13 @@ const loadingIndicatorColor =
 </script>
 
 <template>
-  <NuxtLayout>
+  <div>
     <NuxtLoadingIndicator :height="4" :color="loadingIndicatorColor" />
     <Toaster position="top-right" :duration="3000" rich-colors expand />
-    <NuxtPage />
-  </NuxtLayout>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
 </template>
 
 <style>
