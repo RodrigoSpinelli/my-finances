@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from "vue";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-vue-next";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const ACCENT = {
@@ -46,8 +47,12 @@ const props = defineProps<{
   icon: Component;
   /** Valor exibido (moeda) */
   amount: number;
-  /** Quando não for `null`, exibe o distintivo de variação percentual */
+  /** Quando não for `null`, exibe no rodapé a variação % vs mês anterior */
   changePercent?: number | null;
+  /**
+   * Se true, valores negativos de % são “bons” (ex.: menos gasto vs mês anterior).
+   */
+  improveWhenNegative?: boolean;
   /** Legenda curta no rodapé (ex.: “Mês anterior”) */
   footerLabel?: string;
   /** Valor no rodapé em moeda; omitir o label para ocultar o rodapé */
@@ -89,18 +94,24 @@ const spark = computed(() => {
 
 const { money } = useCurrencyFormat();
 
-const pct = new Intl.NumberFormat("pt-BR", {
+const pctMagnitude = new Intl.NumberFormat("pt-BR", {
   style: "percent",
   maximumFractionDigits: 0,
-  signDisplay: "exceptZero",
+  signDisplay: "never",
 });
 
-function formatPct(value: number | null): string {
-  if (value === null) return "—";
-  return pct.format(value / 100);
+/** Só a magnitude: direção já vem da seta. */
+function formatChangePercentMagnitude(value: number): string {
+  return pctMagnitude.format(Math.abs(value) / 100);
 }
 
 const showFooter = computed(() => Boolean(props.footerLabel?.trim()));
+
+const changeIsPositiveOutcome = computed(() => {
+  const p = props.changePercent;
+  if (p === null || p === undefined) return false;
+  return props.improveWhenNegative ? p < 0 : p >= 0;
+});
 </script>
 
 <template>
@@ -132,10 +143,7 @@ const showFooter = computed(() => Boolean(props.footerLabel?.trim()));
     <CardContent class="pt-0" :class="showFooter ? 'pb-4' : 'pb-6'">
       <template v-if="pending">
         <div class="flex items-end justify-between gap-3">
-          <div class="flex min-w-0 flex-1 flex-col gap-2">
-            <Skeleton class="h-9 w-[min(100%,11rem)] rounded-lg" />
-            <Skeleton class="h-4 w-20 rounded-md" />
-          </div>
+          <Skeleton class="h-9 min-w-0 flex-1 w-[min(100%,11rem)] rounded-lg" />
           <Skeleton
             class="h-10 w-[4.85rem] shrink-0 rounded-md sm:w-22"
             aria-hidden="true"
@@ -144,23 +152,11 @@ const showFooter = computed(() => Boolean(props.footerLabel?.trim()));
       </template>
       <template v-else>
         <div class="flex items-end justify-between gap-3">
-          <div class="min-w-0 flex-1 space-y-1">
-            <div class="flex items-end gap-2">
-              <span
-                class="text-3xl tabular-nums font-bold tracking-tight text-foreground"
-                >{{ money.format(amount) }}</span
-              >
-              <Badge
-                v-if="changePercent != null"
-                size="sm"
-                class="font-medium tabular-nums mb-2"
-                :variant="changePercent < 0 ? 'red-light' : 'green-light'"
-              >
-                <ArrowUpIcon v-if="changePercent >= 0" class="size-3" />
-                <ArrowDownIcon v-else class="size-3" />
-                {{ formatPct(changePercent) }}
-              </Badge>
-            </div>
+          <div class="min-w-0 flex-1">
+            <span
+              class="text-3xl tabular-nums font-bold tracking-tight text-foreground"
+              >{{ money.format(amount) }}</span
+            >
           </div>
           <div
             v-if="spark"
@@ -199,20 +195,38 @@ const showFooter = computed(() => Boolean(props.footerLabel?.trim()));
       class="flex flex-col items-stretch gap-1 border-t border-border/50 bg-muted/25 px-6 py-3.5 dark:bg-muted/15"
     >
       <template v-if="pending">
-        <Skeleton class="h-3 w-24 rounded" />
+        <div class="flex items-center justify-between gap-2">
+          <Skeleton class="h-3 w-36 rounded shrink-0" />
+          <Skeleton class="h-5 w-[4.85rem] rounded-md shrink-0" />
+        </div>
         <Skeleton class="h-5 w-[min(100%,10rem)] rounded-md" />
       </template>
       <template v-else>
-        <p
-          class="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/90"
-        >
-          {{ footerLabel }}
-        </p>
-        <p
-          class="text-sm font-semibold tabular-nums tracking-tight text-foreground/90"
-        >
-          {{ money.format(footerAmount ?? 0) }}
-        </p>
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex flex-col gap-2">
+            <p
+              class="min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/90"
+            >
+              {{ footerLabel }}
+            </p>
+            <p
+              class="text-sm font-semibold tabular-nums tracking-tight text-foreground/90"
+            >
+              {{ money.format(footerAmount ?? 0) }}
+            </p>
+          </div>
+
+          <Badge
+            v-if="changePercent != null"
+            size="sm"
+            class="shrink-0 font-medium tabular-nums"
+            :variant="changeIsPositiveOutcome ? 'emerald' : 'rose'"
+          >
+            <ArrowUpIcon v-if="changePercent >= 0" class="size-3" />
+            <ArrowDownIcon v-else class="size-3" />
+            {{ formatChangePercentMagnitude(changePercent) }}
+          </Badge>
+        </div>
       </template>
     </CardFooter>
   </Card>

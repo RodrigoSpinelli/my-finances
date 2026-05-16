@@ -9,6 +9,8 @@ export interface ExpenseDailyResponse {
   month_total: number;
   /** Soma das despesas no mês anterior ao selecionado. */
   previous_month_total: number;
+  /** Variação % do total de despesas vs o mês anterior. */
+  month_change_percent: number | null;
 }
 
 export interface ItemsData {

@@ -7,6 +7,13 @@ import {
 } from "../../utils/month-bounds"
 import { requireAuthUserId } from "../../utils/require-auth-user"
 
+/** Variação % de `from` para `to` (base = valor absoluto do período anterior). */
+function percentChange(from: number, to: number): number | null {
+  if (from === 0)
+    return null
+  return ((to - from) / Math.abs(from)) * 100
+}
+
 export default defineEventHandler(async (event) => {
   const userId = await requireAuthUserId(event)
   const query = getQuery(event)
@@ -50,5 +57,11 @@ export default defineEventHandler(async (event) => {
 
   const month_total = daily.reduce((s, d) => s + d.amount, 0)
 
-  return { month, daily, month_total, previous_month_total }
+  return {
+    month,
+    daily,
+    month_total,
+    previous_month_total,
+    month_change_percent: percentChange(previous_month_total, month_total),
+  }
 })

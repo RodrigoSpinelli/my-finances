@@ -184,6 +184,8 @@ onMounted(async () => {
           accent="rose"
           :icon="ReceiptTextIcon"
           :amount="monthExpenseTotal"
+          improve-when-negative
+          :change-percent="expenseDailyData?.month_change_percent ?? null"
           footer-label="Despesas no mês anterior"
           :footer-amount="expenseDailyData?.previous_month_total ?? 0"
           :trend="expenseCumulativeTrend"
