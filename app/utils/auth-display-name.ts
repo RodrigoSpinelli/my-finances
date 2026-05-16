@@ -1,4 +1,4 @@
-/** JWT `user_metadata` de signup + provedores OAuth (ex.: GitHub). */
+/** JWT `user_metadata` de signup + provedores OAuth (Google, GitHub, etc.). */
 export type AuthUserLike =
   | {
       email?: string | null;
@@ -15,10 +15,34 @@ const META_NAME_KEYS = [
   "user_name",
 ] as const;
 
+const META_AVATAR_URL_KEYS = ["picture", "avatar_url", "image"] as const;
+
+export function resolveAuthAvatarUrl(user: AuthUserLike): string | null {
+  if (!user) return null;
+  const meta = user.user_metadata ?? {};
+  for (const key of META_AVATAR_URL_KEYS) {
+    const raw = meta[key];
+    if (typeof raw !== "string") continue;
+    const t = raw.trim();
+    if (!t) continue;
+    if (t.startsWith("https://") || t.startsWith("http://")) return t;
+    if (t.startsWith("//")) return `https:${t}`;
+  }
+  return null;
+}
+
 /** Primeiro texto útil pra exibir nome / iniciais. */
 export function resolveAuthDisplayName(user: AuthUserLike): string | null {
   if (!user) return null;
   const meta = user.user_metadata ?? {};
+  const given =
+    typeof meta.given_name === "string" ? meta.given_name.trim() : "";
+  const family =
+    typeof meta.family_name === "string" ? meta.family_name.trim() : "";
+  if (given && family) return `${given} ${family}`;
+  if (given) return given;
+  if (family) return family;
+
   for (const key of META_NAME_KEYS) {
     const raw = meta[key];
     if (typeof raw !== "string") continue;

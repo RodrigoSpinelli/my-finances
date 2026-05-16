@@ -14,6 +14,13 @@ export function useSupabaseOAuth() {
       provider,
       options: {
         ...(redirectTo ? { redirectTo } : {}),
+        ...(provider === "google"
+          ? {
+              queryParams: {
+                prompt: "select_account",
+              },
+            }
+          : {}),
       },
     });
 
