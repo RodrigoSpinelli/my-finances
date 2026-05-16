@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { resolveAuthDisplayFallback } from "~/utils/auth-display-name";
-import { LogOut, Menu } from "lucide-vue-next";
+import { LogOut, Menu, User } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -28,7 +28,6 @@ const navItems = [
   { to: "/dashboard", label: "Início" },
   { to: "/categories", label: "Categorias" },
   { to: "/transactions", label: "Transações" },
-  { to: "/profile", label: "Perfil" },
 ] as const;
 
 const linkClass =
@@ -151,7 +150,13 @@ function closeMobileNav() {
                 {{ userEmail }}
               </p>
             </div>
-            <div class="p-1">
+            <div class="flex flex-col gap-0.5 p-1">
+              <Button variant="ghost" class="h-auto w-full justify-start gap-2 px-3 py-2 font-normal" as-child>
+                <NuxtLink to="/profile" @click="userMenuOpen = false">
+                  <User class="size-4 opacity-70" />
+                  Perfil
+                </NuxtLink>
+              </Button>
               <Button
                 variant="ghost"
                 class="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
