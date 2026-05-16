@@ -154,7 +154,10 @@ const changeIsPositiveOutcome = computed(() => {
         <div class="flex items-end justify-between gap-3">
           <div class="min-w-0 flex-1">
             <span
-              class="text-3xl tabular-nums font-bold tracking-tight text-foreground"
+              class="text-3xl tabular-nums font-bold tracking-tight"
+              :class="
+                amount < 0 ? 'text-destructive' : 'text-foreground'
+              "
               >{{ money.format(amount) }}</span
             >
           </div>
@@ -210,7 +213,12 @@ const changeIsPositiveOutcome = computed(() => {
               {{ footerLabel }}
             </p>
             <p
-              class="text-sm font-semibold tabular-nums tracking-tight text-foreground/90"
+              class="text-sm font-semibold tabular-nums tracking-tight"
+              :class="
+                (footerAmount ?? 0) < 0
+                  ? 'text-destructive'
+                  : 'text-foreground/90'
+              "
             >
               {{ money.format(footerAmount ?? 0) }}
             </p>
