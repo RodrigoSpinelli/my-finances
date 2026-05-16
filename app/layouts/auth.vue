@@ -1,5 +1,22 @@
+<script setup lang="ts">
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-vue-next";
+</script>
+
 <template>
-  <main class="grid min-h-dvh grid-cols-1 overflow-x-hidden lg:grid-cols-2">
+  <main class="relative grid min-h-dvh grid-cols-1 overflow-x-hidden lg:grid-cols-2">
+    <div
+      class="fixed top-4 right-4 z-50 flex items-center gap-2 sm:top-6 sm:right-6"
+    >
+      <Button variant="outline" size="icon" class="bg-background/80 shadow-xs backdrop-blur-sm" as-child>
+        <NuxtLink to="/" aria-label="Voltar para a página inicial">
+          <ArrowLeft class="size-4 shrink-0" aria-hidden="true" />
+        </NuxtLink>
+      </Button>
+      <ClientOnly>
+        <shared-toggle-color-mode aria-label="Alternar modo claro/escuro" />
+      </ClientOnly>
+    </div>
     <div class="flex min-h-0 p-3 sm:p-4 lg:h-dvh lg:items-stretch">
       <div
         class="relative flex min-h-40 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl sm:min-h-48 sm:rounded-3xl"
@@ -51,7 +68,7 @@
       </div>
     </div>
     <div
-      class="flex min-h-0 flex-1 flex-col justify-center px-4 pb-10 pt-6 sm:px-6 sm:pb-14 sm:pt-10 lg:px-12 lg:pb-16 xl:px-20"
+      class="flex min-h-0 flex-1 flex-col justify-center px-4 pb-10 pt-14 sm:px-6 sm:pb-14 sm:pt-14 lg:px-12 lg:pb-16 xl:px-20"
     >
       <div class="mx-auto w-full min-w-0 max-w-lg">
         <slot />
