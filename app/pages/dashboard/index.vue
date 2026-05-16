@@ -6,6 +6,7 @@ import type {
   ExpenseDailyResponse,
   CategoryData,
 } from "~/interfaces/dashboard";
+import { resolveAuthDisplayFallback } from "~/utils/auth-display-name";
 
 definePageMeta({
   name: "dashboard",
@@ -51,6 +52,10 @@ async function maybeOpenExpenseDrawerFromQuery() {
 }
 
 const user = useSupabaseUser();
+
+const welcomeDisplayName = computed(() =>
+  resolveAuthDisplayFallback(user.value),
+);
 
 const { month, monthOptions } = await useDashboardMonthSelect();
 
@@ -130,7 +135,7 @@ onMounted(async () => {
     >
       <div class="grid gap-4">
         <h1 class="text-2xl font-semibold tracking-tight">
-          Bem-vindo(a), {{ user?.user_metadata?.display_name }}!
+          Bem-vindo(a), {{ welcomeDisplayName }}!
         </h1>
       </div>
       <div class="flex items-center space-x-2">

@@ -84,16 +84,7 @@ const form = {
     <component :is="form[variant]" :key="variant" />
     <template v-if="sections.oauthDivider">
       <Separator class="my-4" />
-      <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-        <Button variant="outline" class="h-auto min-h-11 w-full gap-2 py-2.5">
-          <Icon name="simple-icons:google" class="size-4 shrink-0" />
-          <span class="text-center leading-snug">Continuar com Google</span>
-        </Button>
-        <Button variant="outline" class="h-auto min-h-11 w-full gap-2 py-2.5">
-          <Icon name="simple-icons:github" class="size-4 shrink-0" />
-          <span class="text-center leading-snug">Continuar com GitHub</span>
-        </Button>
-      </div>
+      <shared-auth-oauth-buttons />
     </template>
     <p
       v-if="sections.signUpPrompt"

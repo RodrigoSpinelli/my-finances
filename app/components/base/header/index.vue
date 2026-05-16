@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { resolveAuthDisplayFallback } from "~/utils/auth-display-name";
 import { LogOut, Menu } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,17 +34,9 @@ const navItems = [
 const linkClass =
   "text-muted-foreground hover:text-foreground text-sm font-medium transition-colors";
 
-const displayName = computed(() => {
-  const meta = user.value?.user_metadata as { display_name?: string } | undefined;
-  const name = meta?.display_name?.trim();
-  if (name) return name;
-  const email = user.value?.email;
-  if (email) {
-    const local = email.split("@")[0] ?? "";
-    if (local) return local;
-  }
-  return "Usuário";
-});
+const displayName = computed(() =>
+  resolveAuthDisplayFallback(user.value),
+);
 
 const userEmail = computed(() => user.value?.email ?? "");
 
