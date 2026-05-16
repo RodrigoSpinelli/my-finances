@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import {
-  LayoutGridIcon,
-  SquarePenIcon,
-  TargetIcon,
-} from "lucide-vue-next";
+import { LayoutGridIcon, SquarePenIcon, TargetIcon } from "lucide-vue-next";
 import { Progress } from "@/components/ui/progress";
 import type {
   GoalFormIntent,
@@ -57,25 +53,25 @@ const sortedGoals = computed<MonthlyGoalItem[]>(() => {
 
 const hasGoals = computed(
   () =>
-    !!props.data
-    && sortedGoals.value.length > 0
-    && sortedGoals.value.some(g => g.amount > 0),
+    !!props.data &&
+    sortedGoals.value.length > 0 &&
+    sortedGoals.value.some((g) => g.amount > 0),
 );
 
 const generalTaken = computed(() =>
-  sortedGoals.value.some(g => g.category_id === null),
+  sortedGoals.value.some((g) => g.category_id === null),
 );
 
 const takenCategoryIds = computed(() =>
   sortedGoals.value
-    .map(g => g.category_id)
+    .map((g) => g.category_id)
     .filter((cid): cid is string => cid != null),
 );
 
 const expenseCategoryIds = computed(() =>
   categoriesStore.categories
-    .filter(c => c.type === "expense")
-    .map(c => c.id),
+    .filter((c) => c.type === "expense")
+    .map((c) => c.id),
 );
 
 const canAddGoal = computed(() => {
@@ -83,7 +79,7 @@ const canAddGoal = computed(() => {
   if (exp.length === 0) return false;
   if (!generalTaken.value) return true;
   const taken = new Set(takenCategoryIds.value);
-  return exp.some(id => !taken.has(id));
+  return exp.some((id) => !taken.has(id));
 });
 
 function rowProgress(row: MonthlyGoalItem) {
@@ -105,8 +101,7 @@ function rowOver(row: MonthlyGoalItem): boolean {
 }
 
 function rowTitle(row: MonthlyGoalItem): string {
-  if (row.category_id === null)
-    return "Todas as despesas do mês";
+  if (row.category_id === null) return "Todas as despesas do mês";
 
   return row.category?.name ?? "Categoria";
 }
@@ -179,7 +174,9 @@ const skeletonRows = computed(() =>
     </CardHeader>
     <CardContent class="space-y-4 pb-6 pt-0">
       <template v-if="pending">
-        <div class="scrollbar-dashboard-goals flex max-h-[min(440px,calc(100vh-10rem))] flex-col gap-3 overflow-y-auto pr-1">
+        <div
+          class="scrollbar-dashboard-goals flex max-h-[min(440px,calc(100vh-10rem))] flex-col gap-3 overflow-y-auto pr-1"
+        >
           <div
             v-for="n in skeletonRows"
             :key="n"
@@ -221,7 +218,7 @@ const skeletonRows = computed(() =>
           <div
             v-for="row in sortedGoals"
             :key="row.id"
-            class="rounded-xl border border-border/40 bg-muted/15 p-3"
+            class="rounded-xl border border-border/40 bg-muted/15 p-3 shadow-md"
           >
             <div class="flex flex-wrap items-start justify-between gap-2 pb-3">
               <div class="flex min-w-0 flex-1 items-center gap-2.5">
@@ -250,9 +247,7 @@ const skeletonRows = computed(() =>
                     class="block text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
                   >
                     {{
-                      row.category_id === null
-                        ? "Despesas do mês"
-                        : "Categoria"
+                      row.category_id === null ? "Despesas do mês" : "Categoria"
                     }}
                   </span>
                 </div>
@@ -273,11 +268,15 @@ const skeletonRows = computed(() =>
                 </Button>
               </div>
             </div>
-            <div class="mb-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+            <div
+              class="mb-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-1"
+            >
               <span class="text-sm font-medium text-muted-foreground"
                 >Gasto no período</span
               >
-              <span class="items-baseline text-base font-bold tabular-nums tracking-tight sm:text-lg">
+              <span
+                class="items-baseline text-base font-bold tabular-nums tracking-tight sm:text-lg"
+              >
                 {{ money.format(row.spent) }}
                 <span class="font-semibold text-muted-foreground"> / </span>
                 {{ money.format(row.amount) }}
@@ -316,17 +315,21 @@ const skeletonRows = computed(() =>
           <p
             class="mx-auto mt-2 max-w-sm text-center text-[11px] text-muted-foreground"
           >
-            Apenas uma meta geral por mês. Por categoria, uma única linha cada — sem repetir categorias.
+            Apenas uma meta geral por mês. Por categoria, uma única linha cada —
+            sem repetir categorias.
           </p>
         </div>
 
         <p
           v-else-if="
-            expenseCategoryIds.length > 0 || generalTaken === true || takenCategoryIds.length > 0
+            expenseCategoryIds.length > 0 ||
+            generalTaken === true ||
+            takenCategoryIds.length > 0
           "
           class="text-center text-[11px] text-muted-foreground"
         >
-          Todas as opções já têm meta ou não há mais categorias de despesa disponíveis.
+          Todas as opções já têm meta ou não há mais categorias de despesa
+          disponíveis.
         </p>
       </div>
     </CardContent>
@@ -336,7 +339,11 @@ const skeletonRows = computed(() =>
       title="Metas de gastos"
       :description="drawerDescription"
       form="setGoals"
-      :form-props="{ month: props.month, intent: goalFormIntent, formNonce: goalFormNonce }"
+      :form-props="{
+        month: props.month,
+        intent: goalFormIntent,
+        formNonce: goalFormNonce,
+      }"
       @submit="emit('refresh')"
     />
   </Card>

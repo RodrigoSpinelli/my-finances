@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { PiggyBankIcon } from "lucide-vue-next";
-
 const authorSite = "https://www.rodrigospinelli.dev";
 </script>
 
@@ -16,11 +14,11 @@ const authorSite = "https://www.rodrigospinelli.dev";
           class="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:justify-start"
         >
           <span>&copy; {{ new Date().getFullYear() }}</span>
-          <PiggyBankIcon
-            class="text-primary size-5 shrink-0 sm:size-6"
-            aria-hidden="true"
+          <shared-logo-link
+            variant="footer-brand"
+            to="/dashboard"
+            aria-label="Porquinho Financeiro — voltar ao painel"
           />
-          <span class="text-foreground font-semibold">Porquinho Financeiro</span>
           <span class="hidden sm:inline" aria-hidden="true">·</span>
           <span class="w-full sm:w-auto">Todos os direitos reservados.</span>
         </p>
