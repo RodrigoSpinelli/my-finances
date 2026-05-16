@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.101",
+    "@iconify-json/simple-icons": "^1.2.82",
     "@tailwindcss/vite": "^4.2.2",
     "@vitest/coverage-v8": "^4.1.1",
     "@vue/test-utils": "^2.4.6",

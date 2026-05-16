@@ -1,26 +1,17 @@
 import { serverSupabaseClient } from "#supabase/server"
 import {
   currentYearMonth,
+  daysInMonthRange,
   monthDateBounds,
   shiftYearMonth,
 } from "../../utils/month-bounds"
 import { requireAuthUserId } from "../../utils/require-auth-user"
 
-function daysInMonthRange(ym: string): string[] {
-  const { start, end } = monthDateBounds(ym)
-  const days: string[] = []
-  const [y0, m0, d0] = start.split("-").map(Number)
-  const [y1, m1, d1] = end.split("-").map(Number)
-  const endTime = new Date(y1!, m1! - 1, d1!).getTime()
-  const cursor = new Date(y0!, m0! - 1, d0!)
-  while (cursor.getTime() <= endTime) {
-    const yy = cursor.getFullYear()
-    const mm = String(cursor.getMonth() + 1).padStart(2, "0")
-    const dd = String(cursor.getDate()).padStart(2, "0")
-    days.push(`${yy}-${mm}-${dd}`)
-    cursor.setDate(cursor.getDate() + 1)
-  }
-  return days
+/** Variação % de `from` para `to` (base = valor absoluto do período anterior). */
+function percentChange(from: number, to: number): number | null {
+  if (from === 0)
+    return null
+  return ((to - from) / Math.abs(from)) * 100
 }
 
 export default defineEventHandler(async (event) => {
@@ -66,5 +57,11 @@ export default defineEventHandler(async (event) => {
 
   const month_total = daily.reduce((s, d) => s + d.amount, 0)
 
-  return { month, daily, month_total, previous_month_total }
+  return {
+    month,
+    daily,
+    month_total,
+    previous_month_total,
+    month_change_percent: percentChange(previous_month_total, month_total),
+  }
 })

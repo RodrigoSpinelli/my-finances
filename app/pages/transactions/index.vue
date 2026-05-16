@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { TableCell, TableRow } from "@/components/ui/table";
-import type { BadgeVariants } from "@/components/ui/badge";
+import { categoryColorToBadgeVariant } from "@/components/ui/badge";
 import type { Category } from "~/interfaces/category";
 import type { TableHeaders } from "~/interfaces/table";
 import type { DateValue } from "@internationalized/date";
@@ -171,33 +171,6 @@ function formatDate(iso: string) {
   return `${d}/${m}/${y}`;
 }
 
-const knownCategoryBadgeVariants = new Set<string>([
-  "default",
-  "destructive",
-  "outline",
-  "secondary",
-  "red",
-  "blue",
-  "purple",
-  "yellow",
-  "gray",
-  "green",
-  "emerald",
-  "amber",
-  "indigo",
-  "green-light",
-  "red-light",
-]);
-
-/** `colors.name` na API é `string`; o Badge só aceita chaves de variante conhecidas. */
-function categoryBadgeVariant(
-  color: string | null | undefined,
-): NonNullable<BadgeVariants["variant"]> {
-  if (color != null && knownCategoryBadgeVariants.has(color))
-    return color as NonNullable<BadgeVariants["variant"]>;
-  return "default";
-}
-
 function openDialog(id?: string) {
   dialogId.value = id;
   isOpen.value = true;
@@ -255,7 +228,7 @@ async function afterTransactionSave() {
 </script>
 
 <template>
-  <div class="mx-auto max-w-6xl space-y-8 p-6">
+  <div class="mx-auto space-y-4 max-w-7xl px-4 py-6">
     <header class="space-y-1">
       <h1 class="text-2xl font-semibold tracking-tight">Transações</h1>
       <p class="text-muted-foreground text-sm">
@@ -360,7 +333,7 @@ async function afterTransactionSave() {
           {{ money.format(t.amount) }}
         </TableCell>
         <TableCell>
-          <Badge :variant="categoryBadgeVariant(t.categories.color)">
+          <Badge :variant="categoryColorToBadgeVariant(t.categories.color)">
             <span class="inline-flex items-center gap-2">
               <Icon :name="t.categories.icon" class="size-4 shrink-0" />
               {{ t.categories.name }}

@@ -15,18 +15,81 @@ definePageMeta({
   name: "profile",
 });
 
+const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
 const { preferences, pending } = storeToRefs(useUserStore());
 const { getPreferences } = useUserStore();
 
-const displayName = computed(() => {
-  const meta = user.value?.user_metadata as
-    | { display_name?: string }
-    | undefined;
-  const n = meta?.display_name?.trim();
-  return n || "—";
+const displayNameInput = ref("");
+
+watch(
+  user,
+  (u) => {
+    const meta = u?.user_metadata as { display_name?: string } | undefined;
+    displayNameInput.value = meta?.display_name?.trim() ?? "";
+  },
+  { immediate: true },
+);
+
+const savedDisplayTrimmed = computed(() => {
+  const meta = user.value?.user_metadata as { display_name?: string } | undefined;
+  return meta?.display_name?.trim() ?? "";
 });
+
+const displayNameDirty = computed(
+  () => displayNameInput.value.trim() !== savedDisplayTrimmed.value,
+);
+
+const editingDisplayName = ref(false);
+const savingDisplayName = ref(false);
+
+function startEditDisplayName() {
+  displayNameInput.value = savedDisplayTrimmed.value;
+  editingDisplayName.value = true;
+}
+
+function cancelEditDisplayName() {
+  displayNameInput.value = savedDisplayTrimmed.value;
+  editingDisplayName.value = false;
+}
+
+async function saveDisplayName() {
+  const trimmed = displayNameInput.value.trim();
+  if (!trimmed) {
+    useToast({
+      type: "error",
+      title: "Nome obrigatório",
+      description: "Informe como quer ser chamado(a).",
+    });
+    return;
+  }
+
+  savingDisplayName.value = true;
+  const { error } = await supabase.auth.updateUser({
+    data: { display_name: trimmed },
+  });
+  savingDisplayName.value = false;
+
+  if (error) {
+    useToast({
+      type: "error",
+      title: "Não foi possível salvar",
+      description: error.message,
+    });
+    return;
+  }
+
+  await supabase.auth.refreshSession();
+
+  editingDisplayName.value = false;
+
+  useToast({
+    type: "success",
+    title: "Nome atualizado",
+    description: "Seu nome de exibição foi salvo.",
+  });
+}
 
 const email = computed(() => user.value?.email ?? "—");
 
@@ -88,40 +151,95 @@ async function savePreferredCurrency() {
     </header>
 
     <section
-      class="border-border bg-card text-card-foreground space-y-6 rounded-lg border p-6 shadow-sm"
+      class="border-border bg-card text-card-foreground flex flex-col gap-6 rounded-lg border p-6 shadow-sm"
     >
       <div
-        class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"
+        class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <h2 class="text-lg font-medium">Conta</h2>
-        <shared-dialog
-          form="changePassword"
-          title="Alterar senha"
-          description="Alterar a senha da conta"
-        >
-          <template #trigger>
-            <Button type="button" variant="secondary">
-              <Icon name="lucide:key-round" class="size-4" />
-              Trocar senha
-            </Button>
-          </template>
-        </shared-dialog>
+        <div class="flex flex-wrap items-center gap-2">
+          <Button
+            v-if="!editingDisplayName"
+            type="button"
+            variant="secondary"
+            @click="startEditDisplayName"
+          >
+            <Icon name="lucide:pencil-line" class="size-4" />
+            Editar
+          </Button>
+          <shared-dialog
+            form="changePassword"
+            title="Alterar senha"
+            description="Alterar a senha da conta"
+          >
+            <template #trigger>
+              <Button type="button" variant="secondary">
+                <Icon name="lucide:key-round" class="size-4" />
+                Trocar senha
+              </Button>
+            </template>
+          </shared-dialog>
+        </div>
       </div>
 
-      <dl class="space-y-4 text-sm">
-        <div class="space-y-1">
-          <dt class="text-muted-foreground font-medium">Nome de exibição</dt>
-          <dd class="text-foreground font-normal">
-            {{ displayName }}
-          </dd>
+      <div class="grow space-y-6 text-sm">
+        <div v-if="!editingDisplayName" class="space-y-1">
+          <p class="text-muted-foreground font-medium">Nome de exibição</p>
+          <p class="text-foreground">
+            {{ savedDisplayTrimmed || "—" }}
+          </p>
         </div>
-        <div class="space-y-1">
+        <shared-input
+          v-else
+          id="profile_display_name"
+          v-model="displayNameInput"
+          label="Nome de exibição"
+          type="text"
+          autocomplete="name"
+          icon="lucide:user"
+          placeholder="Como deseja ser chamado(a)?"
+          maxlength="120"
+          :disabled="savingDisplayName"
+        />
+        <dl class="space-y-1">
           <dt class="text-muted-foreground font-medium">E-mail</dt>
           <dd class="text-foreground font-normal break-all">
             {{ email }}
           </dd>
-        </div>
-      </dl>
+        </dl>
+      </div>
+
+      <div
+        v-if="editingDisplayName"
+        class="border-border flex flex-wrap items-center justify-end gap-2 border-t pt-6"
+      >
+        <Button
+          type="button"
+          variant="outline"
+          :disabled="savingDisplayName"
+          @click="cancelEditDisplayName"
+        >
+          <Icon name="lucide:x" class="size-4" />
+          Cancelar
+        </Button>
+        <Button
+          type="button"
+          :disabled="
+            savingDisplayName ||
+            !displayNameDirty ||
+            !displayNameInput.trim()
+          "
+          @click="saveDisplayName"
+        >
+          <Icon
+            v-if="savingDisplayName"
+            name="lucide:loader-circle"
+            class="size-4 animate-spin"
+          />
+          <Icon v-else name="lucide:save" class="size-4" />
+          {{ savingDisplayName ? "Salvando…" : "Salvar" }}
+        </Button>
+      </div>
     </section>
 
     <section

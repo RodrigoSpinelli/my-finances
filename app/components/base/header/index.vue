@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { LogOut, Menu, PiggyBankIcon } from "lucide-vue-next";
+import { resolveAuthDisplayFallback } from "~/utils/auth-display-name";
+import { LogOut, Menu } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -33,17 +34,9 @@ const navItems = [
 const linkClass =
   "text-muted-foreground hover:text-foreground text-sm font-medium transition-colors";
 
-const displayName = computed(() => {
-  const meta = user.value?.user_metadata as { display_name?: string } | undefined;
-  const name = meta?.display_name?.trim();
-  if (name) return name;
-  const email = user.value?.email;
-  if (email) {
-    const local = email.split("@")[0] ?? "";
-    if (local) return local;
-  }
-  return "Usuário";
-});
+const displayName = computed(() =>
+  resolveAuthDisplayFallback(user.value),
+);
 
 const userEmail = computed(() => user.value?.email ?? "");
 
@@ -108,16 +101,7 @@ function closeMobileNav() {
           </Drawer>
         </div>
 
-        <NuxtLink
-          to="/dashboard"
-          class="text-primary flex shrink-0 items-center rounded-md outline-none ring-offset-background transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Ir para início"
-        >
-          <PiggyBankIcon
-            class="size-6 shrink-0 sm:size-7"
-            aria-hidden="true"
-          />
-        </NuxtLink>
+        <shared-logo-link variant="app-nav" />
       </div>
 
       <div

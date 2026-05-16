@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import {
-  ReceiptTextIcon,
-  WalletIcon,
-} from "lucide-vue-next";
+import { ReceiptTextIcon, WalletIcon } from "lucide-vue-next";
 import type { DashboardBalance } from "~/interfaces/balance";
 import type { GoalPayload } from "~/interfaces/goal";
 import type {
   ExpenseDailyResponse,
-  MonthFlowResponse,
   CategoryData,
 } from "~/interfaces/dashboard";
+import { resolveAuthDisplayFallback } from "~/utils/auth-display-name";
 
 definePageMeta({
   name: "dashboard",
@@ -56,6 +53,10 @@ async function maybeOpenExpenseDrawerFromQuery() {
 
 const user = useSupabaseUser();
 
+const welcomeDisplayName = computed(() =>
+  resolveAuthDisplayFallback(user.value),
+);
+
 const { month, monthOptions } = await useDashboardMonthSelect();
 
 const {
@@ -86,15 +87,6 @@ const {
 });
 
 const {
-  data: monthFlowData,
-  pending: monthFlowPending,
-  refresh: monthFlowRefresh,
-} = await useFetch<MonthFlowResponse>("/api/transactions/month-flow", {
-  query: computed(() => ({ month: month.value })),
-  watch: [month],
-});
-
-const {
   data: categoriesData,
   pending: categoriesPending,
   refresh: categoriesRefresh,
@@ -107,12 +99,21 @@ const monthExpenseTotal = computed(
   () => expenseDailyData.value?.month_total ?? 0,
 );
 
+const expenseCumulativeTrend = computed(() => {
+  const daily = expenseDailyData.value?.daily;
+  if (!daily?.length) return null;
+  let c = 0;
+  return daily.map((row) => {
+    c += row.amount;
+    return c;
+  });
+});
+
 const getAll = async () => {
   await Promise.all([
     balanceRefresh(),
     expenseDailyRefresh(),
     goalRefresh(),
-    monthFlowRefresh(),
     categoriesRefresh(),
   ]);
 };
@@ -128,13 +129,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mx-auto space-y-4 px-36 py-6">
+  <div class="mx-auto space-y-4 max-w-7xl px-4 py-6">
     <div
       class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
     >
       <div class="grid gap-4">
         <h1 class="text-2xl font-semibold tracking-tight">
-          Bem-vindo(a), {{ user?.user_metadata?.display_name }}!
+          Bem-vindo(a), {{ welcomeDisplayName }}!
         </h1>
       </div>
       <div class="flex items-center space-x-2">
@@ -167,56 +168,53 @@ onMounted(async () => {
         </NativeSelect>
       </div>
     </div>
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-      <app-dashboard-card-metric-card
-        :pending="balancePending"
-        title="Saldo atual"
-        description="Líquido do mês (entradas − saídas)"
-        accent="emerald"
-        :icon="WalletIcon"
-        :amount="balanceData?.month_balance ?? 0"
-        :change-percent="balanceData?.month_change_percent ?? null"
-        footer-label="Saldo líquido no mês anterior"
-        :footer-amount="balanceData?.previous_month_balance ?? 0"
-      />
-      <app-dashboard-card-metric-card
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid gap-6">
+        <app-dashboard-card-metric-card
+          :pending="balancePending"
+          title="Saldo atual"
+          description="Líquido do mês"
+          accent="emerald"
+          :icon="WalletIcon"
+          :amount="balanceData?.month_balance ?? 0"
+          :change-percent="balanceData?.month_change_percent ?? null"
+          footer-label="Saldo líquido no mês anterior"
+          :footer-amount="balanceData?.previous_month_balance ?? 0"
+          :trend="balanceData?.daily_cumulative_net ?? null"
+        />
+        <app-dashboard-card-metric-card
+          :pending="expenseDailyPending"
+          title="Gasto atual"
+          description="Total de despesas"
+          accent="rose"
+          :icon="ReceiptTextIcon"
+          :amount="monthExpenseTotal"
+          improve-when-negative
+          :change-percent="expenseDailyData?.month_change_percent ?? null"
+          footer-label="Despesas no mês anterior"
+          :footer-amount="expenseDailyData?.previous_month_total ?? 0"
+          :trend="expenseCumulativeTrend"
+        />
+      </div>
+      <app-dashboard-expense-calendar
+        :month="month"
+        :daily="expenseDailyData?.daily ?? []"
         :pending="expenseDailyPending"
-        title="Gasto total do mês"
-        description="Soma de todas as despesas no período"
-        accent="rose"
-        :icon="ReceiptTextIcon"
-        :amount="monthExpenseTotal"
-        footer-label="Despesas no mês anterior"
-        :footer-amount="expenseDailyData?.previous_month_total ?? 0"
       />
-      <app-dashboard-chart-bar
-        :pending="monthFlowPending"
-        :data="monthFlowData ?? null"
-      />
-    </div>
-    <div class="grid lg:grid-cols-9 sm:grid-cols-4 grid-cols-1 gap-6">
-      <app-dashboard-chart-categories
-        :pending="categoriesPending"
-        :data="categoriesData ?? null"
-        class="lg:col-span-4 sm:col-span-4"
-      />
-
       <app-dashboard-chart-analysis
         :pending="expenseDailyPending"
         :data="expenseDailyData ?? null"
-        class="sm:col-span-5"
       />
-      <app-dashboard-chart-transactions
-        :pending="monthFlowPending"
-        :data="monthFlowData ?? null"
-        class="lg:col-span-3 sm:col-span-3"
+      <app-dashboard-chart-categories
+        :pending="categoriesPending"
+        :data="categoriesData ?? null"
       />
       <app-dashboard-card-spending-target
         :month="month"
         :pending="goalPending"
         :data="goalData ?? null"
         @refresh="getAll"
-        class="lg:col-span-6 sm:col-span-6"
+        class="lg:col-span-2"
       />
     </div>
     <shared-dialog
